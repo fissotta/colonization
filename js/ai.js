@@ -28,6 +28,9 @@ function takeTurn(f,st,map,say){
         if(v>.3&&(!best||v>best.v))best={v,i,j};}}
     if(best&&P.res.energy>=3){const r=Rules.doColonize(f,st,best.i,best.j,map);if(r.ok){did=true;if(say&&st.hexes[best.j].owner===f&&R()<.25)say(f,'colonize',{to:best.j});if(say&&r.won===false&&R()<.2)say(f,'failed',{to:best.j});}}
     if(did)continue;
+    // 2b. preparar agua (terraformar) de vez en cuando
+    if(R()<.2*pr.expand&&Rules.canPrepare(f,st)==='ok'&&P.res.carbon>=9){const c=Rules.prepareCandidates(f,st,map);if(c.length){const pick=c.sort(()=>R()-.5).slice(0,1+Math.floor(R()*2));const list=[];for(const i of pick){if(Rules.prepareCandidates(f,st,map,list).indexOf(i)>=0)list.push(i);}if(list.length){Rules.doPrepare(f,st,list,map);did=true;}}}
+    if(did)continue;
     // 3. biofilm
     if(P.cdg==='high'){let bi=null;for(const i of map.playable){const s=st.hexes[i];if(s.owner!==f||s.pop<4)continue;if(Rules.canBiofilm(f,st,i)==='ok'){const v=s.pop+(map.d.hexes[i].site?2:0)+s.biofilm;if(!bi||v>bi.v)bi={v,i};}}
       if(bi){Rules.doBiofilm(f,st,bi.i);did=true;}}

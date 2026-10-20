@@ -36,9 +36,16 @@ class HexMapRenderer{
     // river links: adjacent hexes of the same river, plus down links
     this.links=[];const seen=new Set();for(const i of this.waterIdx){const h=data.hexes[i];for(const j of this.nbr[i].concat(h.down)){if(!this.waterIdx.includes(j))continue;const hj=data.hexes[j];if(!(h.down.includes(j)||hj.down.includes(i)||hj.river===h.river))continue;const k=i<j?i+'-'+j:j+'-'+i;if(seen.has(k))continue;seen.add(k);this.links.push([i,j]);}}
     this.tris=[];for(const i of this.waterIdx)for(const j of this.nbr[i])for(const k of this.nbr[i]){if(!(i<j&&j<k))continue;if(!this.waterIdx.includes(j)||!this.waterIdx.includes(k)||!this.nbr[j].includes(k))continue;this.tris.push([i,j,k]);}
-    this.terrain=null;this.terrainKey='';this.fit();}
+    this.orig={};this.terrain=null;this.terrainKey='';this.fit();}
   fillTris(ctx,colFn,grow){for(const [i,j,k] of this.tris){const pts=[this.center(i),this.center(j),this.center(k)];const cx=(pts[0][0]+pts[1][0]+pts[2][0])/3,cy=(pts[0][1]+pts[1][1]+pts[2][1])/3;ctx.fillStyle=colFn(i,j,k);ctx.beginPath();pts.forEach((p,n)=>{const gx=p[0]+(p[0]-cx)*grow,gy=p[1]+(p[1]-cy)*grow;n?ctx.lineTo(gx,gy):ctx.moveTo(gx,gy);});ctx.closePath();ctx.fill();}}
   isLand(i){const t=this.d.hexes[i].t;return t==='land'||t==='mountain'||t==='fumarole';}
+  rebuildWater(){const data=this.d;this.waterIdx=data.hexes.filter(h=>!this.isLand(h.i)).map(h=>h.i);this.playable=this.waterIdx.slice();
+    this.areaWater=new Set(this.waterIdx.filter(i=>['lake','crater','pond','hot','made'].includes(data.hexes[i].t)));
+    this.links=[];const seen=new Set();for(const i of this.waterIdx){const h=data.hexes[i];for(const j of this.nbr[i].concat(h.down)){if(!this.waterIdx.includes(j))continue;const hj=data.hexes[j];if(!(h.down.includes(j)||hj.down.includes(i)||hj.river===h.river||h.t==='made'||hj.t==='made'))continue;const k=i<j?i+'-'+j:j+'-'+i;if(seen.has(k))continue;seen.add(k);this.links.push([i,j]);}}
+    this.tris=[];for(const i of this.waterIdx)for(const j of this.nbr[i])for(const k of this.nbr[i]){if(!(i<j&&j<k))continue;if(!this.waterIdx.includes(j)||!this.waterIdx.includes(k)||!this.nbr[j].includes(k))continue;this.tris.push([i,j,k]);}
+    this.terrain=null;}
+  addWater(i){this.rebuildWater();}
+  revertAll(st){this.orig=this.orig||{};for(const i in this.orig){const o=this.orig[i];const h=this.d.hexes[i];for(const k in h)delete h[k];Object.assign(h,o);if(st&&st.hexes[i]&&st.hexes[i].madeBy)st.hexes[i]=null;}this.orig={};this.rebuildWater();}
   fit(){const W=this.cv.width,H=this.cv.height;const sx=W/((this.cols+.8)*SQ3),sy=H/(this.rows*1.5+1.2);this.size=Math.min(sx,sy)*.98;this.zoom=1;this.ox=(W-(this.cols+.5)*SQ3*this.size)/2;this.oy=(H-(this.rows*1.5+.5)*this.size)/2;}
   center(i){const h=this.d.hexes[i];const s=this.size*this.zoom;return [this.ox+s*SQ3*(h.c+.5+((h.r&1)?.5:0)),this.oy+s*(1+h.r*1.5)];}
   top(i){return this.center(i);}
@@ -119,6 +126,7 @@ class HexMapRenderer{
       const T=eff.T||12;
       if(T>30){for(let k=0;k<(T>45?6:3);k++){const p2=((t*.4+k*.37+i*.13)%1);ctx.fillStyle=`rgba(255,255,255,${.7*(1-p2)})`;ctx.beginPath();ctx.arc(x+Math.sin(k*2.3+i)*s*.35,y+s*.3-p2*s*.8,s*.035+p2*s*.03,0,6.28);ctx.fill();}}
       if(T>38||h.t==='crater')this.steam(ctx,x,y,s,t,i,.2);
+      if(h.t==='made'){ctx.strokeStyle=css(hex2rgb(FBY[h.madeBy].color),.9);ctx.lineWidth=Math.max(2,s*.05);ctx.setLineDash([s*.1,s*.08]);ctx.beginPath();ctx.arc(x,y,s*.62,0,6.28);ctx.stroke();ctx.setLineDash([]);}
       if(st&&st.biofilm){ctx.strokeStyle=css(hex2rgb(FBY[st.owner].tint),.95);ctx.lineWidth=s*.06*st.biofilm;ctx.setLineDash([s*.15,s*.1]);ctx.lineDashOffset=-t*2;ctx.beginPath();ctx.arc(x,y,s*.52,0,6.28);ctx.stroke();ctx.setLineDash([]);}
     }
     // fumarolas humeando
@@ -131,6 +139,8 @@ class HexMapRenderer{
     // tu territorio: brillo suave; tu casa: bandera
     if(hs&&state.me){const F=FBY[state.me];for(const i of this.waterIdx){const st=hs[i];if(!st||st.owner!==state.me)continue;const [x,y]=this.center(i);const g=ctx.createRadialGradient(x,y,s*.1,x,y,s*.95);g.addColorStop(0,css(hex2rgb(F.color),.22+.08*Math.sin(t*2)));g.addColorStop(1,css(hex2rgb(F.color),0));ctx.fillStyle=g;this.path(ctx,x,y,s,.95);ctx.fill();}
       const home=d.siteHex[F.home];if(home!==undefined){const [x,y]=this.center(home);const px=x+s*.62,top=y-s*1.55;ctx.strokeStyle='#222';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(px,y-s*.15);ctx.lineTo(px,top);ctx.stroke();const wob=Math.sin(t*4)*s*.04;ctx.fillStyle=F.color;ctx.beginPath();ctx.moveTo(px,top);ctx.lineTo(px+s*.75,top+s*.2+wob);ctx.lineTo(px,top+s*.42);ctx.closePath();ctx.fill();ctx.strokeStyle='#222';ctx.lineWidth=1.5;ctx.stroke();ctx.fillStyle='#111';ctx.font=`bold ${Math.max(9,s*.2)|0}px system-ui,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(LANG==='en'?'YOU':'TÚ',px+s*.3,top+s*.21);}}
+    if(state&&state.prep){for(const j of state.prep.cands){const [x,y]=this.center(j);this.path(ctx,x,y,s,.9);ctx.strokeStyle=`rgba(90,200,255,${.6+.4*Math.sin(t*5)})`;ctx.lineWidth=3;ctx.setLineDash([s*.15,s*.1]);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(90,200,255,.9)';ctx.font=`bold ${Math.max(12,s*.45)|0}px system-ui,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('💧',x,y+1);}
+      for(const j of state.prep.picked){const [x,y]=this.center(j);ctx.fillStyle=css(hex2rgb(FBY[state.me].tint),.75);this.path(ctx,x,y,s,.8);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke();}}
     // objetivos / hover / selección
     if(state&&state.targets){for(const j of state.targets){const [x,y]=this.center(j);this.path(ctx,x,y,s,.9);ctx.setLineDash([s*.18,s*.12]);ctx.lineDashOffset=-t*s*.5;ctx.strokeStyle=`rgba(255,255,255,${.7+.3*Math.sin(t*5)})`;ctx.lineWidth=3;ctx.stroke();ctx.setLineDash([]);if(!(hs&&hs[j]&&hs[j].owner)){ctx.fillStyle='rgba(255,255,255,.9)';ctx.font=`bold ${Math.max(12,s*.5)|0}px system-ui,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('+',x,y+1);}}}
     if(this.hover>=0&&!this.isLand(this.hover)){const [x,y]=this.center(this.hover);this.path(ctx,x,y,s,.96);ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=2;ctx.stroke();}

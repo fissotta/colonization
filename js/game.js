@@ -10,7 +10,7 @@ window.addEventListener('resize',resize);
 // ---------- boot ----------
 function boot(){map=new HexMap.HexMapRenderer(COPAHUE,canvas);resize();applyLang();showTitle();requestAnimationFrame(loop);
   canvas.addEventListener('mousemove',e=>{const [x,y]=pt(e);if(drag.on){map.ox+=(e.clientX-drag.x)*devicePixelRatio;map.oy+=(e.clientY-drag.y)*devicePixelRatio;drag.x=e.clientX;drag.y=e.clientY;drag.moved=true;return;}map.hover=map.hexAt(x,y);if(map.hover>=0&&!st?.hexes[map.hover])map.hover=-1;});
-  canvas.addEventListener('mousedown',e=>{drag.on=true;drag.x=e.clientX;drag.y=e.clientY;drag.moved=false;});
+  canvas.addEventListener('mousedown',e=>{hidePopup();drag.on=true;drag.x=e.clientX;drag.y=e.clientY;drag.moved=false;});
   window.addEventListener('mouseup',e=>{if(drag.on&&!drag.moved&&e.target===canvas){const [x,y]=pt(e);clickHex(map.hexAt(x,y));}drag.on=false;});
   canvas.addEventListener('wheel',e=>{e.preventDefault();const [x,y]=pt(e);const z0=map.zoom;map.zoom=HexMap.clamp(map.zoom*(e.deltaY<0?1.12:.89),.6,3.5);const k=map.zoom/z0;map.ox=x-(x-map.ox)*k;map.oy=y-(y-map.oy)*k;},{passive:false});
   canvas.addEventListener('mouseleave',()=>{map.hover=-1;});
@@ -20,7 +20,7 @@ function boot(){map=new HexMap.HexMapRenderer(COPAHUE,canvas);resize();applyLang
 const drag={on:false,x:0,y:0,moved:false};
 function pt(e){const r=canvas.getBoundingClientRect();return [(e.clientX-r.left)*devicePixelRatio,(e.clientY-r.top)*devicePixelRatio];}
 function loop(t){const dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;if(st&&!paused&&!st.over&&st.mode==='quick'&&timerLeft>0&&!$('#modal').classList.contains('open')){timerLeft-=dt;$('#timer').textContent=Math.ceil(timerLeft)+'s';$('#timer').classList.toggle('warn',timerLeft<15);if(timerLeft<=0){toast(T('autoEnd'));endTurn();}}
-  if(st){st.targets=mode?mode.targets:(st.over?null:Object.keys(autoTargets()).map(Number));st.me=st.human;}map.draw(st,dt);requestAnimationFrame(loop);}
+  if(st){st.targets=mode?(mode.targets||null):(st.over?null:Object.keys(autoTargets()).map(Number));st.me=st.human;st.prep=mode&&mode.kind==='prepare'?{cands:Rules.prepareCandidates(st.human,st,map,mode.picked),picked:mode.picked}:null;}map.draw(st,dt);requestAnimationFrame(loop);}
 // hexes a los que puedes ir ahora mismo: {target: mejorOrigen}
 function autoTargets(){const me=st.human,P=st.factions[me];const out={};if(P.actions<=0||P.res.energy<3)return out;
   for(const i of map.playable){const s=st.hexes[i];if(s.owner!==me||s.pop<3)continue;for(const j of Rules.colonizeTargets(me,st,i,map)){const t=st.hexes[j];const p=t.owner&&t.owner!==me?Rules.combat(me,st,i,j,map):Rules.colonizeOdds(me,st,i,j,map);if(!out[j]||p>out[j].p)out[j]={from:i,p};}}
@@ -40,9 +40,9 @@ function startNew(m,fid){$('#pick').classList.remove('open');const s=Rules.newSt
 function openTutorial(){const F=FBY[st.human];openModal(`<h3>${F.icon} ${L({es:'Cómo se juega',en:'How to play'})}</h3><div class="tut">
   <div><span class="n">1</span><div><b>${L({es:'Tú eres',en:'You are'})} <span style="color:${F.color}">${esc(L(F.name))}</span>.</b><br>${L({es:'Tus hexes tienen tu color y una bandera 🚩 marca tu casa.',en:'Your hexes carry your colour and a flag 🚩 marks your home.'})}</div></div>
   <div><span class="n">2</span><div><b>${L({es:'Los hexes que brillan (borde blanco punteado) son a los que puedes ir.',en:'Glowing hexes (dashed white border) are where you can go.'})}</b><br>${L({es:'Haz clic en uno y listo: colonizas (o peleas si hay otro). Cuesta ⚡3 y 1 acción.',en:'Click one and done: you colonize (or fight if someone is there). Costs ⚡3 and 1 action.'})}</div></div>
-  <div><span class="n">3</span><div><b>${L({es:'Tienes 3 acciones por turno (🎯 arriba).',en:'You have 3 actions per turn (🎯 top bar).'})}</b><br>${L({es:'Cuando se acaben, pulsa el botón rojo <b>Terminar turno</b>. Lo demás (Poderes, Alianzas, Biofilm) es opcional: pruébalo cuando quieras.',en:'When they run out, press the red <b>End turn</b> button. Everything else (Powers, Alliances, Biofilm) is optional: try it when you like.'})}</div></div></div>
+  <div><span class="n">3</span><div><b>${L({es:'Tienes 3 acciones por turno (🎯 arriba).',en:'You have 3 actions per turn (🎯 top bar).'})}</b><br>${L({es:'Cuando se acaben, pulsa el botón rojo <b>Terminar turno</b>. Al hacer clic en un hex aparece un menú con lo que puedes hacer ahí: Biofilm, Vesículas o <b>Preparar</b> (crear hasta 3 casillas de agua con tu química, una vez por turno).',en:'When they run out, press the red <b>End turn</b> button. Clicking a hex opens a menu with what you can do there: Biofilm, Vesicles or <b>Prepare</b> (create up to 3 water tiles with your chemistry, once per turn).'})}</div></div></div>
   <button id="tutOk" class="go">${L({es:'¡Entendido, a jugar!',en:'Got it, let’s play!'})}</button>`);$('#tutOk').onclick=closeModal;}
-function startFromState(s){st=s;mode=null;if(!$('#adviser').innerHTML)$('#adviser').style.display='none';paused=false;$('#title').classList.remove('open');$('#game').classList.add('open');resize();map.sel=-1;timerLeft=st.timer||0;Audio_.resume();Audio_.setMusic({faction:st.human,era:st.era||0,war:humanAtWar()});refresh();selectHex(COPAHUE.siteHex[FBY[st.human].home]);if(st.over)showGameOver();}
+function startFromState(s){st=s;mode=null;Rules.applyMade(s,map);hidePopup();if(!$('#adviser').innerHTML)$('#adviser').style.display='none';paused=false;$('#title').classList.remove('open');$('#game').classList.add('open');resize();map.sel=-1;timerLeft=st.timer||0;Audio_.resume();Audio_.setMusic({faction:st.human,era:st.era||0,war:humanAtWar()});refresh();selectHex(COPAHUE.siteHex[FBY[st.human].home]);if(st.over)showGameOver();}
 // ---------- HUD ----------
 function refresh(){if(!st)return;const P=st.factions[st.human],F=FBY[st.human];
   $('#hudFaction').innerHTML=`<span class="dot" style="background:${F.color}"></span>${F.icon} ${esc(L(F.name))} · <small>${esc(user)}</small>`;
@@ -70,6 +70,7 @@ function logText(e){const d=e.data;const t=`<small>T${e.turn}</small> `;switch(e
   case 'omvShield':return t+L({es:`🛡 ${fname(d.f)} liberó vesículas señuelo en ${hexName(d.to)}: inmune a fagos.`,en:`🛡 ${fname(d.f)} released decoy vesicles at ${hexName(d.to)}: phage-immune.`});
   case 'omvGene':return t+L({es:`🧬 ${fname(d.f)} regaló el gen <i>${esc(L(GBY[d.gene].name))}</i> a ${fname(d.d)}.`,en:`🧬 ${fname(d.f)} gifted gene <i>${esc(L(GBY[d.gene].name))}</i> to ${fname(d.d)}.`});
   case 'omvDNA':return t+L({es:`🧬 ${fname(d.f)} dejó ADN de <i>${esc(L(GBY[d.gene].name))}</i> en territorio de ${fname(d.d)}.`,en:`🧬 ${fname(d.f)} left DNA of <i>${esc(L(GBY[d.gene].name))}</i> in ${fname(d.d)} territory.`});
+  case 'prepare':return t+L({es:`🏗️ ${fname(d.f)} preparó ${d.n} casilla(s) de agua cerca de ${hexName(d.i)}.`,en:`🏗️ ${fname(d.f)} prepared ${d.n} water tile(s) near ${hexName(d.i)}.`});
   case 'war':return t+L({es:`⚔️ ${fname(d.f)} declaró la guerra a ${fname(d.d)}.`,en:`⚔️ ${fname(d.f)} declared war on ${fname(d.d)}.`});
   case 'ally':return t+L({es:`🤝 Sintrofia entre ${fname(d.f)} y ${fname(d.d)}.`,en:`🤝 Syntrophy between ${fname(d.f)} and ${fname(d.d)}.`});
   case 'peace':return t+L({es:`🕊 Paz entre ${fname(d.f)} y ${fname(d.d)}.`,en:`🕊 Peace between ${fname(d.f)} and ${fname(d.d)}.`});
@@ -80,9 +81,32 @@ function toast(msg,ms){const tb=$('#toast');tb.innerHTML=msg;tb.classList.add('s
 function adviser(msg){$('#adviser').style.display='';$('#adviser').innerHTML=`<b>🔬 ${T('adviser')}:</b> ${msg}`;}
 // ---------- hex panel ----------
 function clickHex(i){if(i<0||!st)return;Audio_.sfx('click');
+  if(mode&&mode.kind==='prepare'){pickPrepare(i);return;}
   if(mode){if(mode.targets.indexOf(i)>=0){execTarget(i);}else{cancelMode();selectHex(i);}return;}
-  const at=autoTargets();if(!st.over&&at[i]&&st.hexes[i].owner!==st.human){mode={kind:'colonize',from:at[i].from,targets:[i]};execTarget(i);return;}
-  selectHex(i);}
+  if(mode&&mode.kind==='prepare'){pickPrepare(i);return;}
+  selectHex(i);popupFor(i);}
+// menú emergente sobre el hex
+function popupFor(i){const pop=$('#popup');const me=st.human;if(!st||st.over){pop.style.display='none';return;}const s=st.hexes[i];const h=COPAHUE.hexes[i];const P=st.factions[me];const at=autoTargets()[i];
+  let items=[];
+  if(s&&s.owner===me){const cb=Rules.canBiofilm(me,st,i);items.push({ic:'🧱',t:T('biofilm')+' '+s.biofilm+'→'+Math.min(3,s.biofilm+1),sub:'🟢'+Rules.biofilmCost(me,st,i)+(cb==='cdg'?' · '+L({es:'solo en modo 🛡',en:'only in 🛡 mode'}):''),dis:cb!=='ok',act:()=>hexAction('biofilm',i)});
+    items.push({ic:'💧',t:T('omv'),sub:'🟢3',dis:P.actions<=0||P.res.carbon<3,act:()=>openOMV(i)});
+    const cp=Rules.canPrepare(me,st);items.push({ic:'🏗️',t:L({es:'Preparar agua',en:'Prepare water'}),sub:cp==='ok'?L({es:'hasta 3 casillas · 🟢3 c/u',en:'up to 3 tiles · 🟢3 each'}):cp==='oncePerTurn'?L({es:'ya usado este turno',en:'already used this turn'}):T(cp),dis:cp!=='ok',act:()=>startPrepare()});}
+  else if(s&&at){items.push({ic:s.owner?'⚔️':'🧫',t:(s.owner?T('attack'):T('colonize'))+' '+((at.p*100)|0)+' %',sub:'⚡3',dis:false,act:()=>{mode={kind:'colonize',from:at.from,targets:[i]};execTarget(i);}});
+    if(s.owner&&s.owner!==me){items.push({ic:'☠️',t:T('omvToxin'),sub:'🟢3',dis:P.actions<=0||P.res.carbon<3,act:()=>{mode={kind:'omv',from:at.from,type:'toxin',targets:[i]};execTarget(i);}});}}
+  else if(s){items.push({ic:'🚫',t:L({es:'Fuera de alcance',en:'Out of reach'}),sub:P.actions<=0?T('noActions'):L({es:'coloniza primero un hex vecino',en:'colonize a neighbouring hex first'}),dis:true});}
+  else if(h.t==='land'&&Rules.prepareCandidates(me,st,map).indexOf(i)>=0){const cp=Rules.canPrepare(me,st);items.push({ic:'🏗️',t:L({es:'Preparar agua aquí',en:'Prepare water here'}),sub:cp==='ok'?L({es:'crea una poza con tu química',en:'make a pool with your chemistry'}):cp==='oncePerTurn'?L({es:'ya usado este turno',en:'already used this turn'}):T(cp),dis:cp!=='ok',act:()=>startPrepare(i)});}
+  else{pop.style.display='none';return;}
+  const [x,y]=map.center(i);const r=canvas.getBoundingClientRect();const wrap=$('#mapwrap').getBoundingClientRect();const px=x/devicePixelRatio+r.left-wrap.left,py=y/devicePixelRatio+r.top-wrap.top;
+  pop.innerHTML=`<div class="ptitle">${h.site?esc(COPAHUE.sites[h.site].name):esc(h.river||typeName(h))}</div>`+items.map((it,k)=>`<button data-k="${k}" ${it.dis?'disabled':''}><span>${it.ic}</span><div><b>${it.t}</b><small>${it.sub||''}</small></div></button>`).join('');
+  pop.style.display='block';const pw=pop.offsetWidth,ph=pop.offsetHeight;let lx=px+map.size*map.zoom/devicePixelRatio*.9,ly=py-ph/2;if(lx+pw>wrap.width-10)lx=px-pw-map.size*map.zoom/devicePixelRatio*.9;ly=Math.max(8,Math.min(wrap.height-ph-8,ly));pop.style.left=lx+'px';pop.style.top=ly+'px';
+  pop.querySelectorAll('[data-k]').forEach(b=>b.onclick=e=>{e.stopPropagation();pop.style.display='none';items[+b.dataset.k].act();});}
+function hidePopup(){$('#popup').style.display='none';}
+// modo preparar: elegir hasta 3 casillas de tierra pegadas a tu territorio
+function startPrepare(first){mode={kind:'prepare',picked:[],targets:null};hidePopup();const bar=$('#prepbar');bar.style.display='flex';updatePrepBar();if(first!==undefined)pickPrepare(first);toast(L({es:'Haz clic en las casillas azules 💧 (hasta 3) y confirma.',en:'Click the blue 💧 tiles (up to 3) and confirm.'}),4000);}
+function pickPrepare(i){const c=Rules.prepareCandidates(st.human,st,map,mode.picked);const k=mode.picked.indexOf(i);if(k>=0){mode.picked.splice(k,1);}else if(c.indexOf(i)>=0&&mode.picked.length<3){if((mode.picked.length+1)*3>st.factions[st.human].res.carbon){toast('🟢 '+T('notEnough'));return;}mode.picked.push(i);}else{Audio_.sfx('fail');}updatePrepBar();}
+function updatePrepBar(){const n=mode?mode.picked.length:0;const ok=n*3<=st.factions[st.human].res.carbon;$('#prepCount').innerHTML=`${n}/3 · <span style="color:${ok?'#9f9':'#f88'}">🟢${n*3}</span>`;$('#prepOk').disabled=n===0||!ok;}
+$('#prepOk').onclick=()=>{if(!mode||mode.kind!=='prepare')return;const r=Rules.doPrepare(st.human,st,mode.picked,map);if(r.ok){Audio_.sfx('biofilm');for(const i of mode.picked)map.spawn(i,'gift',8);toast(L({es:'💧 Agua preparada con tu química. ¡Ahora colonízala antes que otros!',en:'💧 Water prepared with your chemistry. Colonize it before others do!'}),3500);}else toast(T(r.msg));cancelMode();refresh();};
+$('#prepCancel').onclick=()=>{cancelMode();};
 function selectHex(i){map.sel=i;renderHex(i);}
 function renderHex(i){const h=COPAHUE.hexes[i],s=st.hexes[i];if(!s){$('#hexpanel').innerHTML=`<div class="muted">${T('selectHex')}</div>`;return;}
   const me=st.human;const F=FBY[me];const fit=Rules.fitness(me,st,i,map);const e=s.eff;const site=h.site?COPAHUE.sites[h.site]:null;
@@ -118,7 +142,7 @@ function execTarget(j){const me=st.human;
     else{if(r.won){Audio_.sfx('colonize');map.spawn(j,'colonize',10);toast('🧫 '+T('success')+` (${(p*100)|0} %)`);}else{Audio_.sfx('fail');toast(T('fail')+` (${(p*100)|0} %)`);}}
     cancelMode();selectHex(j);refresh();return;}
   if(mode.kind==='omv'){const r=Rules.doOMV(me,st,mode.from,j,mode.type,map,mode.gene);if(!r.ok)toast(T(r.msg));else{Audio_.sfx('omv');map.spawn(j,mode.type==='toxin'?'toxin':mode.type==='dna'?'dna':'gift',10);}cancelMode();refresh();}}
-function cancelMode(){mode=null;}
+function cancelMode(){mode=null;$('#prepbar').style.display='none';hidePopup();}
 function openOMV(i){const me=st.human;const tg=Rules.omvTargets(me,st,i,map);const P=st.factions[me];
   let html=`<h3>💧 ${T('sendOMV')}</h3><p class="muted">${esc(L(CONCEPTS.find(c=>c.id==='omv').text))}</p><div class="col">`;
   html+=`<button data-t="enzyme">🎁 ${T('omvEnzyme')}</button><button data-t="toxin">☠️ ${T('omvToxin')}</button><button data-t="dna">🧬 ${T('omvDNA')}</button>`;

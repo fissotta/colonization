@@ -20,7 +20,7 @@ const I18N={
   success:'¡Colonizado!',fail:'La colonización fracasó',won:'¡Ganaste la competencia!',lost:'Perdiste la competencia',
   timer:'Tiempo del turno',autoEnd:'Turno terminado automáticamente',
   adviser:'Asesora científica',users:'Usuarios en este equipo',newUser:'Nuevo usuario',slot:'Ranura',empty2:'vacía',
-  eraNames:['Era planctónica','Era del biofilm','Era genómica','Era simbiótica'],
+  prepTitle:'Preparar agua',confirm:'Confirmar',oncePerTurn:'Solo una vez por turno',eraNames:['Era planctónica','Era del biofilm','Era genómica','Era simbiótica'],
  },
  en:{
   title:'COLONIZATION',subtitle:'War for the Agrio',tagline:'Copahue’s microbial communities fight for the river',
@@ -42,7 +42,7 @@ const I18N={
   success:'Colonized!',fail:'Colonization failed',won:'You won the competition!',lost:'You lost the competition',
   timer:'Turn timer',autoEnd:'Turn ended automatically',
   adviser:'Science adviser',users:'Users on this computer',newUser:'New user',slot:'Slot',empty2:'empty',
-  eraNames:['Planktonic era','Biofilm era','Genomic era','Symbiotic era'],
+  prepTitle:'Prepare water',confirm:'Confirm',oncePerTurn:'Only once per turn',eraNames:['Planktonic era','Biofilm era','Genomic era','Symbiotic era'],
  }
 };
 let LANG='es';

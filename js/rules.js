@@ -54,7 +54,7 @@ function isAllied(st,a,b){return !!st.alliances[KEY(a,b)];}
 function atWar(st,a,b){return !!st.wars[KEY(a,b)];}
 function rel(st,a,b){return st.relations[KEY(a,b)]||0;}
 function addRel(st,a,b,d){const k=KEY(a,b);st.relations[k]=clamp((st.relations[k]||0)+d,-100,100);if(st.relations[k]<-40&&!st.wars[k]){st.wars[k]=st.turn;delete st.alliances[k];}}
-function capacity(st,i,map){const hs=st.hexes[i];const h=map.d.hexes[i];let cap=(h.t==='lake'?7:h.t==='falls'?6:h.t==='pond'?5:6)+hs.biofilm*1.3;return Math.min(MAX_POP,cap);}
+function capacity(st,i,map){const hs=st.hexes[i];const h=map.d.hexes[i];let cap=(h.t==='lake'?7:h.t==='falls'?6:h.t==='pond'||h.t==='made'?5:6)+hs.biofilm*1.3;return Math.min(MAX_POP,cap);}
 function colonizeRange(f,st){const F=FBY[f];let r=1+(has(st,f,'flagellum')?1:0);if(F.bonus.range)r=Math.max(r,F.bonus.range);if(st.factions[f].cdg==='high')r=1;return r;}
 function downstreamOf(map,i,j){return map.d.hexes[i].down.indexOf(j)>=0;}
 function reachableDown(map,i,n){const out=new Set();let fr=[i];for(let k=0;k<n;k++){const nx=[];for(const a of fr)for(const b of map.d.hexes[a].down){if(!out.has(b)){out.add(b);nx.push(b);}}fr=nx;}return out;}
@@ -185,6 +185,23 @@ function checkVictory(st,map){if(st.over)return;const total=map.playable.length;
     const wars=Object.keys(st.wars).filter(k=>k.split('|').indexOf(f)>=0).length;const alive=FACTIONS.filter(F=>st.factions[F.id].alive).length;
     st.winner={f,kind:(wars===0&&alive>=4&&territory(st,f)>=total*.25)?'ecological':'score',scores:sc};}}
 function score(st,f,map){const P=st.factions[f];let s=territory(st,f)*3+Math.round(strength(st,f))+P.genes.length*2;s+=Object.keys(st.alliances).filter(k=>k.split('|').indexOf(f)>=0).length*5;return s;}
+// ---- preparar: crear hasta 3 casillas de agua con la química del creador (cualquiera puede colonizarlas) ----
+function prepareCandidates(f,st,map,picked){picked=picked||[];const out=new Set();const own=map.playable.filter(i=>st.hexes[i]&&st.hexes[i].owner===f).concat(picked);
+  for(const i of own)for(const j of map.nbr[i]){const h=map.d.hexes[j];if(h.t==='land'&&picked.indexOf(j)<0)out.add(j);}return [...out];}
+function canPrepare(f,st){const P=st.factions[f];if(P.actions<=0)return 'noActions';if(P.preparedTurn===st.turn)return 'oncePerTurn';if(P.res.carbon<3)return 'notEnough';return 'ok';}
+function madeChem(f){const F=FBY[f];const acid=F.phOpt<4;return {ph:F.phOpt,T:F.tOpt,fe:F.energy.indexOf('Fe')>=0?300:(acid?60:0.3),so4:acid?2500:300,o2:55,ec:acid?3500:500,as:0};}
+function convertHex(st,map,i,by){const h=map.d.hexes[i];if(h.t!=='land')return false;map.orig[i]=map.orig[i]||JSON.parse(JSON.stringify(h));const F=FBY[by];const ch=madeChem(by);
+  h.t='made';h.madeBy=by;h.river=(FBY[by].name.es||'')?('Poza de '+(FBY[by].name.es)):'Poza';Object.assign(h,ch);
+  const low=map.nbr[i].filter(j=>!map.isLand(j)).sort((a,b)=>map.d.elev[a]-map.d.elev[b]);h.down=low.length?[low[0]]:[];
+  for(const j of map.nbr[i]){const hj=map.d.hexes[j];if(hj.t==='made'&&hj.down.indexOf(i)<0&&map.d.elev[j]>map.d.elev[i])hj.down.push(i);}
+  if(!st.hexes[i])st.hexes[i]={owner:null,pop:0,biofilm:0,eff:Object.assign({},ch),shield:0,eDNA:null,eDNAttl:0,madeBy:by};
+  map.addWater(i);return true;}
+function doPrepare(f,st,list,map){const c=canPrepare(f,st);if(c!=='ok')return {ok:false,msg:c};if(!list.length||list.length>3)return {ok:false,msg:'tooFar'};const P=st.factions[f];
+  const cost=3*list.length;if(P.res.carbon<cost)return {ok:false,msg:'notEnough'};
+  const picked=[];for(const i of list){if(prepareCandidates(f,st,map,picked).indexOf(i)<0)return {ok:false,msg:'tooFar'};picked.push(i);}
+  P.res.carbon-=cost;P.actions--;P.preparedTurn=st.turn;st.made=st.made||[];for(const i of picked){convertHex(st,map,i,f);st.made.push({i,by:f,turn:st.turn});}
+  effective(st,map);log(st,'prepare',{f,n:picked.length,i:picked[0]});return {ok:true};}
+function applyMade(st,map){map.revertAll(st);for(const m of (st.made||[]))convertHex(st,map,m.i,m.by);effective(st,map);}
 function log(st,kind,data){st.log.push({turn:st.turn,kind,data});if(st.log.length>300)st.log.shift();}
-return {newState,fitness,yields,colonizeTargets,colonizeOdds,combat,doColonize,canBiofilm,doBiofilm,biofilmCost,biofilmMax,doCdg,omvTargets,doOMV,geneRoutes,geneCost,doGene,propose,aiAccepts,complementary,rel,isAllied,atWar,strength,territory,worldTurn,effective,score,capacity,organic,has,KEY,ACTIONS_PER_TURN,addRel,log,leaveDNA};
+return {prepareCandidates,canPrepare,doPrepare,applyMade,convertHex,madeChem,newState,fitness,yields,colonizeTargets,colonizeOdds,combat,doColonize,canBiofilm,doBiofilm,biofilmCost,biofilmMax,doCdg,omvTargets,doOMV,geneRoutes,geneCost,doGene,propose,aiAccepts,complementary,rel,isAllied,atWar,strength,territory,worldTurn,effective,score,capacity,organic,has,KEY,ACTIONS_PER_TURN,addRel,log,leaveDNA};
 })();
