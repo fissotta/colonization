@@ -30,7 +30,7 @@ externa, transferencia horizontal de genes, ICE, quorum sensing, fagos/CRISPR, s
 | Los Nómades (IA) | *Sulfobacillus* + *Thiomonas* | VA2 | mixótrofos, endosporas |
 
 ## Mecánicas
-- **Mapa**: tablero de 16×11 hexágonos grandes en pseudo‑3D (relieve, bosques, nieve, vapor), 47 de agua, con la forma del sistema real:
+- **Mapa**: tablero de 16×11 hexágonos estilo Civilization VI (terreno pintado continuo, montañas, bosques, ríos serpenteantes, fronteras de color, carteles de ciudad), 47 de agua, con la forma del sistema real:
   volcán y vertientes al noroeste, Agrio Superior, Jara, lago Caviahue, Agrio Inferior hasta el Salto, Puerta de Trolope y Loncopué,
   Chancho‑Có y las Mellizas. Cada hex de agua tiene pH, temperatura, Fe, SO₄ y O₂ reales (interpolados entre sitios de muestreo).
   El color del agua sale del pH y el hierro (rojo‑óxido en el Agrio, turquesa en el lago, azul en el Jara) y se tiñe

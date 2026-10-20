@@ -63,9 +63,9 @@ sites['VAN'] = {'code': 'VAN', 'name': SITE_NAMES['VAN'], 'ids': ['VAN18-1'], 'y
 # elevation (m) for the relief, hand-shaped: volcano NW high, valley to SE
 def elev(c, r):
     x, y = c / (COLS - 1), r / (ROWS - 1)
-    base = 2750 - 900 * (x * .8 + y * .5)
-    ridge = 250 * math.sin(x * 9 + y * 3) * math.cos(y * 7 - x * 2)
-    return int(base + ridge)
+    base = 2850 - 1500 * (x * .7 + y * .55)
+    ridge = 220 * math.sin(x * 9 + y * 3) * math.cos(y * 7 - x * 2)
+    return int(max(1150, base + ridge))
 TYPE = {'CR': 'crater', 'SP': 'spring', 'AS': 'river', 'LK': 'lake', 'AI': 'river', 'JA': 'river', 'DU': 'river', 'RO': 'river', 'CH': 'river', 'TR': 'river',
         'PO': 'pond', 'HS': 'hot', 'FA': 'falls', 'NE': 'river', '..': 'land', 'MM': 'mountain', '^^': 'fumarole'}
 hexes = []; idx = {}
