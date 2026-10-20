@@ -8,7 +8,7 @@ externa, transferencia horizontal de genes, ICE, quorum sensing, fagos/CRISPR, s
 ## Cómo correrlo
 - Mac / Linux: en esta carpeta `python3 tools/serve.py` (o `python3 -m http.server 8000`) y abre http://localhost:8000
 - Windows: `python -m http.server 8000`
-- GitHub Pages: la carpeta completa sirve tal cual (hay `.nojekyll`).
+- GitHub: https://github.com/fissotta/colonization — GitHub Pages sirve la carpeta tal cual (hay `.nojekyll`).
 - Funciona offline: todo es HTML + JS puro, sin dependencias.
 
 ## Modos
@@ -56,4 +56,4 @@ externa, transferencia horizontal de genes, ICE, quorum sensing, fagos/CRISPR, s
 - Arisan D, Moya‑Beltrán A, Rojas‑Villalobos C, Issotta F, et al. (2024) *Acidithiobacillia class members originating at sites within the Pacific Ring of Fire and other tectonically active locations and description of the novel genus ‘Igneacidithiobacillus’*. Front. Microbiol. 15:1360268.
 - Moya‑Beltrán A, et al. (2021) *Genomic evolution of the class Acidithiobacillia: deep‑branching Proteobacteria living in extreme acidic conditions*. ISME J 15:3221–3238.
 
-Hecho para el Bioinformatics‑lab (USACH). Versión 1.0 — octubre 2026.
+Microbial Ecophysiology Lab (Fundación Ciencia & Vida) · Bioinformatics‑lab (USACH). Versión 1.0 — octubre 2026.
