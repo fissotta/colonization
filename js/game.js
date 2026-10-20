@@ -1,7 +1,7 @@
 // COLONIZATION — interfaz, flujo de turnos, modos de juego
 'use strict';
 (function(){
-const VERSION='v2.1 · 2026-10-20 13:42';
+const VERSION='v2.2 · 2026-10-20 14:03';
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let autoEndTimer=null;
@@ -99,7 +99,7 @@ function popupFor(i){const pop=$('#popup');const me=st.human;if(!st||st.over){po
     const cp=Rules.canPrepare(me,st);items.push({ic:'🏗️',t:L({es:'Preparar agua',en:'Prepare water'}),sub:cp==='ok'?L({es:'hasta 3 casillas · 🟢3 c/u · 1 acción',en:'up to 3 tiles · 🟢3 each · 1 action'}):T(cp),dis:cp!=='ok',act:()=>startPrepare()});}
   else if(s&&at){items.push({ic:s.owner?'⚔️':'🧫',t:(s.owner?T('attack'):T('colonize'))+' '+((at.p*100)|0)+' %',sub:'⚡3 · 1 '+L({es:'acción',en:'action'}),dis:false,act:()=>{mode={kind:'colonize',from:at.from,targets:[i]};execTarget(i);}});
     if(s.owner&&s.owner!==me){items.push({ic:'☠️',t:T('omvToxin'),sub:'🟢3',dis:P.actions<=0||P.res.carbon<3,act:()=>{mode={kind:'omv',from:at.from,type:'toxin',targets:[i]};execTarget(i);}});}}
-  else if(s){items.push({ic:'🚫',t:L({es:'Fuera de alcance',en:'Out of reach'}),sub:P.actions<=0?T('noActions'):L({es:'coloniza primero un hex vecino',en:'colonize a neighbouring hex first'}),dis:true});}
+  else if(s){const near=map.nbr[i].some(j=>st.hexes[j]&&st.hexes[j].owner===me);const why=P.actions<=0?T('noActions'):P.res.energy<3?'⚡ '+T('notEnough'):near?L({es:'tu hex vecino necesita población ≥ 3 (espera un turno)',en:'your neighbouring hex needs population ≥ 3 (wait a turn)'}):L({es:'coloniza primero un hex vecino',en:'colonize a neighbouring hex first'});items.push({ic:'🚫',t:L({es:'Fuera de alcance',en:'Out of reach'}),sub:why,dis:true});}
   else if(h.t==='land'&&Rules.prepareCandidates(me,st,map).indexOf(i)>=0){const cp=Rules.canPrepare(me,st);items.push({ic:'🏗️',t:L({es:'Preparar agua aquí',en:'Prepare water here'}),sub:cp==='ok'?L({es:'crea una poza con tu química',en:'make a pool with your chemistry'}):T(cp),dis:cp!=='ok',act:()=>startPrepare(i)});}
   else if(!s){pop.style.display='none';return;}
   // información
@@ -149,7 +149,7 @@ function typeName(h){const m={river:{es:'Río',en:'River'},lake:{es:'Lago',en:'L
 function genusColor(g){const m={Acidithiobacillus:'#f2c230',Leptospirillum:'#c8401a',Ferroplasma:'#c8401a',Sulfobacillus:'#b56cf0',Thiomonas:'#b56cf0',Acidiphilium:'#3fbf8f',Acidocella:'#3fbf8f',Ferrovum:'#8a6a2a',Limnohabitans:'#3a8ef0',Polynucleobacter:'#3a8ef0',Flavobacterium:'#3a8ef0'};return m[g]||'#999';}
 function hexAction(act,i){const me=st.human;
   if(act==='go'){const at=autoTargets()[i];if(at){mode={kind:'colonize',from:at.from,targets:[i]};execTarget(i);}return;}
-  if(act==='colonize'){const tg=Rules.colonizeTargets(me,st,i,map);if(!tg.length){toast(st.factions[me].cdg==='high'?L({es:'Con c-di-GMP alto solo colonizas río abajo adyacente.',en:'With high c-di-GMP you only colonize adjacent downstream.'}):T('tooFar'));return;}mode={kind:'colonize',from:i,targets:tg};toast(L({es:'Elige el hex destino (brillante). Esc cancela.',en:'Pick a target hex (glowing). Esc cancels.'}),4000);}
+  if(act==='colonize'){const tg=Rules.colonizeTargets(me,st,i,map);if(!tg.length){toast(T('tooFar'));return;}mode={kind:'colonize',from:i,targets:tg};toast(L({es:'Elige el hex destino (brillante). Esc cancela.',en:'Pick a target hex (glowing). Esc cancels.'}),4000);}
   if(act==='biofilm'){const r=Rules.doBiofilm(me,st,i);if(r.ok){Audio_.sfx('biofilm');map.spawn(i,'bio',10);}else toast(T(r.msg));refresh();}
   if(act==='omv'){openOMV(i);}}
 function execTarget(j){const me=st.human;

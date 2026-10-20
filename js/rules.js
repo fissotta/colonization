@@ -59,12 +59,12 @@ function colonizeRange(f,st){const F=FBY[f];let r=1+(has(st,f,'flagellum')?1:0);
 function downstreamOf(map,i,j){return map.d.hexes[i].down.indexOf(j)>=0;}
 function reachableDown(map,i,n){const out=new Set();let fr=[i];for(let k=0;k<n;k++){const nx=[];for(const a of fr)for(const b of map.d.hexes[a].down){if(!out.has(b)){out.add(b);nx.push(b);}}fr=nx;}return out;}
 function colonizeTargets(f,st,from,map){const r=colonizeRange(f,st);const hs=st.hexes[from];if(!hs||hs.owner!==f||hs.pop<3)return [];
-  const out=[];const high=st.factions[f].cdg==='high';
-  for(const j of map.playable){if(j===from)continue;const d=map.dist(from,j);if(high){if(!downstreamOf(map,from,j))continue;}else if(d>r)continue;const t=st.hexes[j];if(t.owner===f)continue;if(t.owner&&isAllied(st,f,t.owner))continue;out.push(j);}
+  const out=[];
+  for(const j of map.playable){if(j===from)continue;const d=map.dist(from,j);if(d>r)continue;const t=st.hexes[j];if(t.owner===f)continue;if(t.owner&&isAllied(st,f,t.owner))continue;out.push(j);}
   return out;}
 function colonizeOdds(f,st,from,to,map){let p=fitness(f,st,to,map);const F=FBY[f];
   if(downstreamOf(map,from,to))p*=1.25;else if(downstreamOf(map,to,from))p*=(has(st,f,'flagellum')?.85:.6);else p*=.9;
-  if(st.factions[f].cdg==='low')p*=1.2;return clamp(p,.03,.97);}
+  if(st.factions[f].cdg==='low')p*=1.2;else p*=.85;return clamp(p,.03,.97);}
 function combat(f,st,from,to,map){const t=st.hexes[to];const d=t.owner;const Fd=FBY[d],Fa=FBY[f];
   const att=st.hexes[from].pop*fitness(f,st,to,map)*(has(st,f,'bacteriocin')?1.5:1)*(st.factions[f].cdg==='low'?1.1:1)*(Fa.bonus.attack||1);
   const def=1.3*Math.max(.5,t.pop)*Math.max(.15,fitness(d,st,to,map))*(1+t.biofilm*.5+(has(st,d,'eps')?.5:0)+(Fd.bonus.defense||0)+(st.factions[d].cdg==='high'?.3:0));
