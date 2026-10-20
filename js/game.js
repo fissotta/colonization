@@ -1,7 +1,7 @@
 // COLONIZATION — interfaz, flujo de turnos, modos de juego
 'use strict';
 (function(){
-const VERSION='v1.7 · 2026-10-20 12:53';
+const VERSION='v1.8 · 2026-10-20 12:55';
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let autoEndTimer=null;
@@ -39,11 +39,13 @@ function chooseFaction(m){const box=$('#factions');box.innerHTML='';FACTIONS.for
     c.onclick=()=>{Audio_.resume();Audio_.sfx('click');startNew(m,f.id);};box.appendChild(c);});$('#pick').classList.add('open');$('#pickMode').textContent=m==='quick'?T('quick'):T('campaign');}
 $('#pickClose').onclick=()=>$('#pick').classList.remove('open');
 function startNew(m,fid){$('#pick').classList.remove('open');const s=Rules.newState(map,{mode:m,faction:fid,user});Rules.effective(s,map);startFromState(s);const F=FBY[fid];adviser(L({es:`${F.icon} Tú eres <b>${esc(L(F.name))}</b>. Tu casa es ${F.home} (bandera). Haz clic en un hex que brilla para colonizarlo.`,en:`${F.icon} You are <b>${esc(L(F.name))}</b>. Home is ${F.home} (flag). Click a glowing hex to colonize it.`}));openTutorial();}
-function openTutorial(){const F=FBY[st.human];openModal(`<h3>${F.icon} ${L({es:'Cómo se juega',en:'How to play'})}</h3><div class="tut">
-  <div><span class="n">1</span><div><b>${L({es:'Tú eres',en:'You are'})} <span style="color:${F.color}">${esc(L(F.name))}</span>.</b><br>${L({es:'Tus hexes tienen tu color y una bandera 🚩 marca tu casa.',en:'Your hexes carry your colour and a flag 🚩 marks your home.'})}</div></div>
-  <div><span class="n">2</span><div><b>${L({es:'Los hexes que brillan (borde blanco punteado) son a los que puedes ir.',en:'Glowing hexes (dashed white border) are where you can go.'})}</b><br>${L({es:'Haz clic en uno y listo: colonizas (o peleas si hay otro). Cuesta ⚡3 y 1 acción.',en:'Click one and done: you colonize (or fight if someone is there). Costs ⚡3 and 1 action.'})}</div></div>
-  <div><span class="n">3</span><div><b>${L({es:'Tienes 3 acciones por turno (🎯 arriba).',en:'You have 3 actions per turn (🎯 top bar).'})}</b><br>${L({es:'Cuando se acaben, el turno pasa solo (o pulsa <b>Terminar turno</b> antes si quieres). Al hacer clic en un hex aparece un menú con lo que puedes hacer ahí: Biofilm, Vesículas o <b>Preparar</b> (crear hasta 3 casillas de agua con tu química, una vez por turno).',en:'When they run out the turn ends by itself (or press <b>End turn</b> earlier). Clicking a hex opens a menu with what you can do there: Biofilm, Vesicles or <b>Prepare</b> (create up to 3 water tiles with your chemistry, once per turn).'})}</div></div></div>
-  <button id="tutOk" class="go">${L({es:'¡Entendido, a jugar!',en:'Got it, let’s play!'})}</button>`);$('#tutOk').onclick=closeModal;}
+function openTutorial(pause){const F=FBY[st.human];openModal(`${pause?`<div class="pausebig">⏸ ${L({es:'PAUSA',en:'PAUSED'})}</div>`:''}<h3>${F.icon} ${L({es:'Cómo se juega',en:'How to play'})}</h3><div class="tut">
+  <div><span class="n">🚩</span><div>${L({es:`Eres <b style="color:${F.color}">${esc(L(F.name))}</b>. Tus hexes tienen tu color; la bandera <b>TÚ</b> es tu casa.`,en:`You are <b style="color:${F.color}">${esc(L(F.name))}</b>. Your hexes carry your colour; the <b>YOU</b> flag is home.`})}</div></div>
+  <div><span class="n">7</span><div>${L({es:'El <b>número</b> en cada hex es la <b>población</b> que vive ahí (máx. 10). Con <b>3 o más</b> puedes saltar a un hex vecino.',en:'The <b>number</b> in each hex is the <b>population</b> living there (max 10). With <b>3 or more</b> you can jump to a neighbouring hex.'})}</div></div>
+  <div><span class="n">+</span><div>${L({es:'Haz clic en un hex que <b>brilla</b> para colonizarlo. Clic en cualquier hex abre un menú con más opciones (Biofilm, Vesículas, Preparar agua).',en:'Click a <b>glowing</b> hex to colonize it. Clicking any hex opens a menu with more options (Biofilm, Vesicles, Prepare water).'})}</div></div>
+  <div><span class="n">3</span><div>${L({es:'Tienes <b>3 acciones</b> por turno (●●● arriba). Al gastarlas, el turno pasa solo.',en:'You have <b>3 actions</b> per turn (●●● top bar). When spent, the turn ends by itself.'})}</div></div>
+  <div><span class="n">⏎</span><div>${L({es:'<b>Enter</b> = pausa y estas instrucciones. <b>Esc</b> = menú.',en:'<b>Enter</b> = pause and these instructions. <b>Esc</b> = menu.'})}</div></div></div>
+  <button id="tutOk" class="go">${pause?L({es:'▶ Seguir jugando',en:'▶ Resume'}):L({es:'¡Entendido, a jugar!',en:'Got it, let’s play!'})}</button>`,false);$('#tutOk').onclick=closeModal;}
 function startFromState(s){st=s;mode=null;Rules.applyMade(s,map);hidePopup();if(!$('#adviser').innerHTML)$('#adviser').style.display='none';paused=false;$('#title').classList.remove('open');$('#game').classList.add('open');resize();map.sel=-1;timerLeft=st.timer||0;Audio_.resume();Audio_.setMusic({faction:st.human,era:st.era||0,war:humanAtWar()});refresh();selectHex(COPAHUE.siteHex[FBY[st.human].home]);if(st.over)showGameOver();}
 // ---------- HUD ----------
 function refresh(){if(!st)return;const P=st.factions[st.human],F=FBY[st.human];
@@ -183,7 +185,7 @@ function openPedia(tab){const tabs=[['fac',{es:'Facciones',en:'Factions'}],['gen
   html+=`</div><div class="small muted">${L({es:'Fuentes: campañas Copahue 2019–2020 (copahue-v8/data), Arisan et al. 2024 Front. Microbiol. 15:1360268, Moya‑Beltrán et al. 2021 ISME J 15:3221.',en:'Sources: Copahue campaigns 2019–2020 (copahue-v8/data), Arisan et al. 2024 Front. Microbiol. 15:1360268, Moya‑Beltrán et al. 2021 ISME J 15:3221.'})}</div>`;
   openModal(html,true);$$('#modal [data-tab]').forEach(b=>b.onclick=()=>openPedia(b.dataset.tab));}
 // ---------- menu ----------
-$('#btnMenu').onclick=()=>openMenu();$('#btnHow').onclick=()=>openTutorial();$('#btnPause').onclick=()=>{paused=!paused;$('#btnPause').textContent=paused?'▶ '+T('resume'):'⏸ '+T('pause');toast(paused?T('pause'):T('resume'));};
+$('#btnMenu').onclick=()=>openMenu();$('#btnHow').onclick=()=>openTutorial(true);$('#btnPause').onclick=()=>{paused=!paused;$('#btnPause').textContent=paused?'▶ '+T('resume'):'⏸ '+T('pause');toast(paused?T('pause'):T('resume'));};
 function openMenu(){let html=`<h3>☰ ${T('menu')} <small class="muted">${VERSION}</small></h3><div class="col">`;
   html+=`<button id="mSave">💾 ${T('save')}</button><button id="mExport">⬇️ ${T('save')} (.json)</button><button id="mLang">🌐 ${T('lang')}</button><button id="mSound">${Audio_.on?'🔊':'🔇'} ${T('sound')}</button><button id="mMusic">${Audio_.musicOn?'🎵':'🎵✖'} ${T('music')}</button><button id="mHelp">❓ ${T('help')}</button><button id="mQuit" class="danger">⏏ ${T('quit')}</button></div>`;
   openModal(html);$('#mSave').onclick=()=>{Save.save(user,st.mode,st);toast('💾 '+T('save')+' ✓');};$('#mExport').onclick=()=>{Save.save(user,st.mode,st);Save.exportJSON(user,st.mode);};
@@ -233,7 +235,7 @@ function showGameOver(){const w=st.winner;if(!w)return;const me=st.human;const s
 // ---------- keys ----------
 function onKey(e){if(!st||$('#title').classList.contains('open'))return;const tag=document.activeElement&&document.activeElement.tagName;if(tag==='INPUT'||tag==='SELECT')return;
   if(e.key==='Escape'){if(mode)cancelMode();else if($('#modal').classList.contains('open'))closeModal();else openMenu();}
-  if(e.key==='Enter'&&!$('#modal').classList.contains('open'))endTurn();
+  if(e.key==='Enter'){if($('#modal').classList.contains('open'))closeModal();else openTutorial(true);}
   if(e.key==='g'||e.key==='G')openGenes();if(e.key==='d'||e.key==='D')openDiplo();if(e.key==='p'||e.key==='P')openPedia('fac');if(e.key==='h'||e.key==='H')openHelp();if(e.key==='c'||e.key==='C')$('#cdgBtn').click();}
 // ---------- lang ----------
 function applyLang(){$$('[data-i]').forEach(el=>el.textContent=T(el.dataset.i));document.documentElement.lang=LANG;$('#langBtn').textContent=T('lang');if(!st)renderUsers();}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>COLONIZATION v1.7</title>
+<title>COLONIZATION v1.8</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon points='50,5 93,27 93,73 50,95 7,73 7,27' fill='%23c4461a'/><circle cx='50' cy='50' r='18' fill='%23f2c230'/></svg>">
 <style>
 :root{--bg:#0b0f14;--panel:#121a22;--panel2:#18232e;--line:#2a3a48;--txt:#e8eef4;--muted:#93a4b4;--acc:#f2c230;--rust:#c4461a;--teal:#2fb9b1}
@@ -63,7 +63,8 @@ input,select{font:inherit;background:#0f161d;color:var(--txt);border:1px solid v
 .tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}.tabs .sel{background:var(--acc);color:#000}.pe{padding:8px 0;border-bottom:1px solid var(--line)}.pe h4{margin:0 0 4px}.pe ul{margin:4px 0;padding-left:18px}.pe .photo{max-width:320px}
 table.sc{width:100%;border-collapse:collapse;margin:8px 0}table.sc td{padding:4px 6px;border-bottom:1px solid var(--line)}.cmp{display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;font-size:13px}
 ul.help li{margin:4px 0}
-.tut{display:flex;flex-direction:column;gap:12px;margin:10px 0 16px}.tut>div{display:flex;gap:12px;align-items:flex-start;font-size:15px;line-height:1.4}.tut .n{flex:none;width:34px;height:34px;border-radius:50%;background:var(--acc);color:#000;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:18px}
+.pausebig{font-size:44px;font-weight:900;letter-spacing:.15em;text-align:center;color:var(--acc);margin:4px 0 10px;text-shadow:0 0 20px rgba(242,194,48,.5)}
+.tut{display:flex;flex-direction:column;gap:12px;margin:10px 0 16px}.tut>div{display:flex;gap:12px;align-items:flex-start;font-size:15px;line-height:1.4}.tut .n{flex:none;width:36px;height:36px;font-size:17px;border-radius:50%;background:var(--acc);color:#000;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:18px}
 button.go{width:100%;font-size:17px;font-weight:700;padding:12px;background:#1f6f4a;border-color:#3fbf8f}button.go:hover{background:#27905e}button.go small{display:block;font-weight:400;color:#cfe}
 .hint{background:#0f161d;border:1px dashed var(--line);border-radius:10px;padding:10px;margin:8px 0;font-size:13px;line-height:1.4}
 #popup{position:absolute;display:none;z-index:15;background:rgba(12,18,24,.96);border:1px solid var(--acc);border-radius:12px;padding:6px;min-width:200px;box-shadow:0 10px 30px rgba(0,0,0,.5)}#popup .ptitle{font-weight:700;padding:4px 8px 6px;color:var(--acc);font-size:13px}#popup button{display:flex;gap:8px;align-items:center;width:100%;text-align:left;margin:3px 0;padding:6px 8px;background:var(--panel2)}#popup button span{font-size:22px}#popup button small{display:block;color:var(--muted)}
@@ -83,7 +84,7 @@ button.go{width:100%;font-size:17px;font-weight:700;padding:12px;background:#1f6
     <div id="saves"></div>
   </div>
   <a class="mel" href="https://cienciavida.org" target="_blank" rel="noopener" title="Microbial Ecophysiology Lab — Fundación Ciencia &amp; Vida"><img src="img/logoMEL.svg" alt="Microbial Ecophysiology Lab"></a>
-  <div class="credits"><b class="ver" style="color:#ffe28a;font-size:14px">v1.7 · 2026-10-20 12:53</b><br>Datos reales: campañas Copahue 2019–2020 · Arisan et al. 2024 · Moya‑Beltrán et al. 2021</div>
+  <div class="credits"><b class="ver" style="color:#ffe28a;font-size:14px">v1.8 · 2026-10-20 12:55</b><br>Datos reales: campañas Copahue 2019–2020 · Arisan et al. 2024 · Moya‑Beltrán et al. 2021</div>
 </div>
 <div id="pick"><button id="pickClose">✕</button><h2><span data-i="chooseFaction">Elige tu comunidad</span> · <span id="pickMode"></span></h2><div id="factions"></div></div>
 <div id="game">
@@ -91,7 +92,7 @@ button.go{width:100%;font-size:17px;font-weight:700;padding:12px;background:#1f6
     <button id="btnGenes">🧬 <span data-i="genes">Genes</span></button><button id="btnDiplo">🤝 <span data-i="diplomacy">Diplomacia</span></button><button id="btnPedia">📖 <span data-i="pedia">Pedia</span></button><button id="btnPause">⏸ <span data-i="pause">Pausa</span></button><button id="btnHow">❓</button><button id="btnMenu">☰</button></div>
   <div id="mapwrap"><canvas id="map"></canvas>
     <div id="adviser"></div><div id="msgs"></div>
-    <div id="bottom"><div id="log"></div><div id="right"><button id="cdgBtn" class="cdg"></button><button id="btnEnd"><span data-i="endTurn">Terminar turno</span> ⏎</button></div></div>
+    <div id="bottom"><div id="log"></div><div id="right"><button id="cdgBtn" class="cdg"></button><button id="btnEnd"><span data-i="endTurn">Terminar turno</span></button></div></div>
     <div id="toast"></div><div id="popup"></div><div id="prepbar"><span>🏗️ <b data-i="prepTitle">Preparar agua</b> <span id="prepCount">0/3</span></span><button id="prepOk" class="go">✓ <span data-i="confirm">Confirmar</span></button><button id="prepCancel">✕</button></div></div>
   <div id="side"><div id="hexpanel"></div></div>
 </div>
