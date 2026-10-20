@@ -1,7 +1,7 @@
 // COLONIZATION — interfaz, flujo de turnos, modos de juego
 'use strict';
 (function(){
-const VERSION='v1.5 · 2026-10-20 12:43';
+const VERSION='v1.6 · 2026-10-20 12:48';
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let map,st=null,mode=null,lastT=0,timerLeft=0,paused=false,pendingMsgs=[],user='',tipShown={};
