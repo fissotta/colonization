@@ -1,6 +1,7 @@
 // COLONIZATION — interfaz, flujo de turnos, modos de juego
 'use strict';
 (function(){
+const VERSION='v1.5 · 2026-10-20 12:43';
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let map,st=null,mode=null,lastT=0,timerLeft=0,paused=false,pendingMsgs=[],user='',tipShown={};
@@ -8,7 +9,7 @@ const canvas=$('#map');
 function resize(){const wrap=$('#mapwrap');canvas.width=wrap.clientWidth*devicePixelRatio;canvas.height=wrap.clientHeight*devicePixelRatio;canvas.style.width=wrap.clientWidth+'px';canvas.style.height=wrap.clientHeight+'px';if(map)map.fit();}
 window.addEventListener('resize',resize);
 // ---------- boot ----------
-function boot(){map=new HexMap.HexMapRenderer(COPAHUE,canvas);resize();applyLang();showTitle();requestAnimationFrame(loop);
+function boot(){document.querySelectorAll('.ver').forEach(e=>e.textContent=VERSION);document.title='COLONIZATION '+VERSION.split(' · ')[0];map=new HexMap.HexMapRenderer(COPAHUE,canvas);resize();applyLang();showTitle();requestAnimationFrame(loop);
   canvas.addEventListener('mousemove',e=>{const [x,y]=pt(e);if(drag.on){map.ox+=(e.clientX-drag.x)*devicePixelRatio;map.oy+=(e.clientY-drag.y)*devicePixelRatio;drag.x=e.clientX;drag.y=e.clientY;drag.moved=true;return;}map.hover=map.hexAt(x,y);if(map.hover>=0&&!st?.hexes[map.hover])map.hover=-1;});
   canvas.addEventListener('mousedown',e=>{hidePopup();drag.on=true;drag.x=e.clientX;drag.y=e.clientY;drag.moved=false;});
   window.addEventListener('mouseup',e=>{if(drag.on&&!drag.moved&&e.target===canvas){const [x,y]=pt(e);clickHex(map.hexAt(x,y));}drag.on=false;});
@@ -181,7 +182,7 @@ function openPedia(tab){const tabs=[['fac',{es:'Facciones',en:'Factions'}],['gen
   openModal(html,true);$$('#modal [data-tab]').forEach(b=>b.onclick=()=>openPedia(b.dataset.tab));}
 // ---------- menu ----------
 $('#btnMenu').onclick=()=>openMenu();$('#btnHow').onclick=()=>openTutorial();$('#btnPause').onclick=()=>{paused=!paused;$('#btnPause').textContent=paused?'▶ '+T('resume'):'⏸ '+T('pause');toast(paused?T('pause'):T('resume'));};
-function openMenu(){let html=`<h3>☰ ${T('menu')}</h3><div class="col">`;
+function openMenu(){let html=`<h3>☰ ${T('menu')} <small class="muted">${VERSION}</small></h3><div class="col">`;
   html+=`<button id="mSave">💾 ${T('save')}</button><button id="mExport">⬇️ ${T('save')} (.json)</button><button id="mLang">🌐 ${T('lang')}</button><button id="mSound">${Audio_.on?'🔊':'🔇'} ${T('sound')}</button><button id="mMusic">${Audio_.musicOn?'🎵':'🎵✖'} ${T('music')}</button><button id="mHelp">❓ ${T('help')}</button><button id="mQuit" class="danger">⏏ ${T('quit')}</button></div>`;
   openModal(html);$('#mSave').onclick=()=>{Save.save(user,st.mode,st);toast('💾 '+T('save')+' ✓');};$('#mExport').onclick=()=>{Save.save(user,st.mode,st);Save.exportJSON(user,st.mode);};
   $('#mLang').onclick=()=>{setLang(LANG==='es'?'en':'es');applyLang();closeModal();refresh();};$('#mSound').onclick=()=>{Audio_.toggleSound();openMenu();};$('#mMusic').onclick=()=>{Audio_.toggleMusic();openMenu();};
