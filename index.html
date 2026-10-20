@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>COLONIZATION v2.0</title>
+<title>COLONIZATION v2.1</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon points='50,5 93,27 93,73 50,95 7,73 7,27' fill='%23c4461a'/><circle cx='50' cy='50' r='18' fill='%23f2c230'/></svg>">
 <style>
 :root{--bg:#0b0f14;--panel:#121a22;--panel2:#18232e;--line:#2a3a48;--txt:#e8eef4;--muted:#93a4b4;--acc:#f2c230;--rust:#c4461a;--teal:#2fb9b1}
@@ -48,12 +48,13 @@ input,select{font:inherit;background:#0f161d;color:var(--txt);border:1px solid v
 .taxa{margin-top:8px;border-top:1px solid var(--line);padding-top:6px}.tx{display:grid;grid-template-columns:120px 1fr 44px;gap:6px;align-items:center;font-size:11px}.tx span{font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #bottom{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:flex-end;gap:10px;padding:10px;pointer-events:none}
 #bottom>*{pointer-events:auto}#log{width:420px;max-height:150px;overflow:auto;background:rgba(10,14,18,.8);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:12px;line-height:1.45}.le small{color:var(--muted);margin-right:4px}
-#adviser{position:absolute;left:10px;top:10px;max-width:520px;background:rgba(10,14,18,.85);border:1px solid #3a4a2a;border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.4}
-#msgs{position:absolute;right:10px;top:10px;width:360px;display:flex;flex-direction:column;gap:6px}.msg{background:rgba(10,14,18,.92);border:1px solid;border-radius:10px;padding:8px 10px;font-size:13px;line-height:1.4}.msg button{margin:4px 4px 0 0;padding:3px 8px}
+#notes{position:absolute;left:10px;right:10px;top:8px;display:flex;gap:10px;align-items:flex-start;pointer-events:none;z-index:12}#notes>*{pointer-events:auto}
+#adviser{flex:1 1 50%;max-width:560px;background:rgba(10,14,18,.85);border:1px solid #3a4a2a;border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.4}
+#msgs{margin-left:auto;width:380px;display:flex;flex-direction:column;gap:6px}.msg{background:rgba(10,14,18,.92);border:1px solid;border-radius:10px;padding:8px 10px;font-size:13px;line-height:1.4}.msg button{margin:4px 4px 0 0;padding:3px 8px}
 #right{margin-left:auto;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
 #btnEnd{font-size:17px;font-weight:700;padding:12px 22px;background:var(--rust);border-color:#ff8a5a}#btnEnd:hover{background:#e65a2a}
 .cdg{font-size:12px;text-align:left}.cdg.high{border-color:var(--teal)}.cdg.low{border-color:#ffb38a}
-#toast{position:absolute;left:50%;top:60px;transform:translateX(-50%) translateY(-20px);background:rgba(10,14,18,.95);border:1px solid var(--acc);border-radius:10px;padding:10px 16px;opacity:0;transition:.25s;pointer-events:none;font-size:14px;max-width:70%}#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%) translateY(-20px);background:rgba(10,14,18,.95);border:1px solid var(--acc);border-radius:10px;padding:10px 16px;opacity:0;transition:.25s;pointer-events:none;font-size:14px;max-width:70%}#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 /* modal */
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:40}#modal.open{display:flex}
 #modal .box{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 22px;width:min(520px,94vw);max-height:90vh;overflow:auto;font-size:14px;line-height:1.45}#modal .box.wide{width:min(900px,94vw)}
@@ -84,14 +85,14 @@ button.go{width:100%;font-size:17px;font-weight:700;padding:12px;background:#1f6
     <div id="saves"></div>
   </div>
   <a class="mel" href="https://cienciavida.org" target="_blank" rel="noopener" title="Microbial Ecophysiology Lab — Fundación Ciencia &amp; Vida"><img src="img/logoMEL.svg" alt="Microbial Ecophysiology Lab"></a>
-  <div class="credits"><b class="ver" style="color:#ffe28a;font-size:14px">v2.0 · 2026-10-20 13:38</b><br>Datos reales: campañas Copahue 2019–2020 · Arisan et al. 2024 · Moya‑Beltrán et al. 2021</div>
+  <div class="credits"><b class="ver" style="color:#ffe28a;font-size:14px">v2.1 · 2026-10-20 13:42</b><br>Datos reales: campañas Copahue 2019–2020 · Arisan et al. 2024 · Moya‑Beltrán et al. 2021</div>
 </div>
 <div id="pick"><button id="pickClose">✕</button><h2><span data-i="chooseFaction">Elige tu comunidad</span> · <span id="pickMode"></span></h2><div id="factions"></div></div>
 <div id="game">
   <div id="hud"><span id="hudFaction"></span><span id="hudTurn"></span><span id="hudEra"></span><span id="timer"></span><span class="sp"></span><span id="hudRes"></span>
     <button id="btnGenes">🧬 <span data-i="genes">Genes</span></button><button id="btnDiplo">🤝 <span data-i="diplomacy">Diplomacia</span></button><button id="btnPedia">📖 <span data-i="pedia">Pedia</span></button><button id="btnPause">⏸ <span data-i="pause">Pausa</span></button><button id="btnHow">❓</button><button id="btnMenu">☰</button></div>
   <div id="mapwrap"><canvas id="map"></canvas>
-    <div id="adviser"></div><div id="msgs"></div>
+    <div id="notes"><div id="adviser"></div><div id="msgs"></div></div>
     <div id="bottom"><div id="log"></div><div id="right"><button id="cdgBtn" class="cdg"></button><button id="btnEnd"><span data-i="endTurn">Terminar turno</span></button></div></div>
     <div id="toast"></div><div id="popup"></div><div id="prepbar"><span>🏗️ <b data-i="prepTitle">Preparar agua</b> <span id="prepCount">0/3</span></span><button id="prepOk" class="go">✓ <span data-i="confirm">Confirmar</span></button><button id="prepCancel">✕</button></div></div>
   <div id="side"><div id="hexpanel"></div></div>

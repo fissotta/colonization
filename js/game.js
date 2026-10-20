@@ -1,7 +1,7 @@
 // COLONIZATION — interfaz, flujo de turnos, modos de juego
 'use strict';
 (function(){
-const VERSION='v2.0 · 2026-10-20 13:38';
+const VERSION='v2.1 · 2026-10-20 13:42';
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let autoEndTimer=null;
@@ -112,7 +112,10 @@ function popupFor(i){const pop=$('#popup');const me=st.human;if(!st||st.over){po
   info+=`<div class="fit">${F.icon} ${T('fitness')}: <div class="bar"><i style="width:${(fit*100)|0}%;background:${fc}"></i></div> <b>${(fit*100)|0} %</b></div>`;
   const [x,y]=map.center(i);const r=canvas.getBoundingClientRect();const wrap=$('#mapwrap').getBoundingClientRect();const px=x/devicePixelRatio+r.left-wrap.left,py=y/devicePixelRatio+r.top-wrap.top;
   pop.innerHTML=info+`<div class="pacts">`+items.map((it,k)=>`<button data-k="${k}" ${it.dis?'disabled':''}><span>${it.ic}</span><div><b>${it.t}</b><small>${it.sub||''}</small></div></button>`).join('')+`</div><button class="pclose" id="pClose">✕</button>`;
-  pop.style.display='block';const pw=pop.offsetWidth,ph=pop.offsetHeight;const hs=map.size*map.zoom/devicePixelRatio;let lx=px+hs*.95,ly=py-ph/2;if(lx+pw>wrap.width-10)lx=px-pw-hs*.95;if(lx<8)lx=8;ly=Math.max(8,Math.min(wrap.height-ph-8,ly));pop.style.left=lx+'px';pop.style.top=ly+'px';
+  pop.style.display='block';const pw=pop.offsetWidth,ph=pop.offsetHeight;const hs=map.size*map.zoom/devicePixelRatio;const notesB=($('#notes').getBoundingClientRect().bottom-wrap.top)+6;const logR=$('#log').getBoundingClientRect();const logTop=logR.top-wrap.top-6,logRight=logR.right-wrap.left+6;
+  let lx=px+hs*.95,ly=py-ph/2;if(lx+pw>wrap.width-10)lx=px-pw-hs*.95;if(lx<8)lx=8;ly=Math.max(notesB,Math.min(wrap.height-ph-8,ly));
+  if(lx<logRight&&ly+ph>logTop){const up=logTop-ph;if(up>=notesB)ly=up;else lx=Math.min(wrap.width-pw-8,logRight);}
+  pop.style.left=lx+'px';pop.style.top=ly+'px';
   $('#pClose').onclick=hidePopup;pop.querySelectorAll('[data-k]').forEach(b=>b.onclick=e=>{e.stopPropagation();pop.style.display='none';items[+b.dataset.k].act();});}
 function hidePopup(){$('#popup').style.display='none';}
 // modo preparar: elegir hasta 3 casillas de tierra pegadas a tu territorio
