@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>COLONIZATION v1.8</title>
+<title>COLONIZATION v2.0</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon points='50,5 93,27 93,73 50,95 7,73 7,27' fill='%23c4461a'/><circle cx='50' cy='50' r='18' fill='%23f2c230'/></svg>">
 <style>
 :root{--bg:#0b0f14;--panel:#121a22;--panel2:#18232e;--line:#2a3a48;--txt:#e8eef4;--muted:#93a4b4;--acc:#f2c230;--rust:#c4461a;--teal:#2fb9b1}
@@ -34,12 +34,12 @@ input,select{font:inherit;background:#0f161d;color:var(--txt);border:1px solid v
 .fname{font-weight:800;font-size:17px;color:var(--fc)}.ftax{font-style:italic;color:var(--muted);font-size:11px}.fsp{font-size:12px;color:var(--muted)}.flead{margin:6px 0;font-size:13px}.fcard ul{margin:6px 0;padding-left:18px;font-size:12.5px;color:#cfd8e0}.fq{font-style:italic;color:var(--muted);font-size:12px}
 #pickClose{position:fixed;top:14px;right:16px}
 /* game */
-#game{position:fixed;inset:0;display:none;grid-template-rows:46px 1fr;grid-template-columns:1fr 340px;z-index:10}#game.open{display:grid}
+#game{position:fixed;inset:0;display:none;grid-template-rows:46px 1fr;grid-template-columns:1fr;z-index:10}#game.open{display:grid}
 #hud{grid-column:1/3;display:flex;align-items:center;gap:14px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--line);font-size:14px}
 #hud .sp{flex:1}#hudRes span{margin-right:12px}#hudEra{color:var(--acc);font-style:italic}
 #timer{font-variant-numeric:tabular-nums;padding:2px 8px;border-radius:6px;background:#0a0e12}#timer.warn{color:#ff6b4a;animation:blink 1s infinite}@keyframes blink{50%{opacity:.4}}
 #mapwrap{position:relative;overflow:hidden;background:#0b0f14}#map{display:block}
-#side{background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+#side{display:none}
 #hexpanel{padding:12px;overflow:auto;flex:1;font-size:13px}.hname{font-size:17px;font-weight:700}.code{font-size:11px;background:#0a0e12;padding:1px 6px;border-radius:6px;color:var(--acc);vertical-align:middle}.htype{color:var(--muted);font-size:12px;margin-bottom:6px}
 .photo{width:100%;border-radius:8px;margin:6px 0;border:1px solid var(--line)}
 .chem{display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;font-size:12px;margin:6px 0}.chem span{background:#0f161d;padding:3px 6px;border-radius:6px}.own{margin:8px 0;line-height:1.5}.fit{margin:4px 0}
@@ -67,7 +67,7 @@ ul.help li{margin:4px 0}
 .tut{display:flex;flex-direction:column;gap:12px;margin:10px 0 16px}.tut>div{display:flex;gap:12px;align-items:flex-start;font-size:15px;line-height:1.4}.tut .n{flex:none;width:36px;height:36px;font-size:17px;border-radius:50%;background:var(--acc);color:#000;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:18px}
 button.go{width:100%;font-size:17px;font-weight:700;padding:12px;background:#1f6f4a;border-color:#3fbf8f}button.go:hover{background:#27905e}button.go small{display:block;font-weight:400;color:#cfe}
 .hint{background:#0f161d;border:1px dashed var(--line);border-radius:10px;padding:10px;margin:8px 0;font-size:13px;line-height:1.4}
-#popup{position:absolute;display:none;z-index:15;background:rgba(12,18,24,.96);border:1px solid var(--acc);border-radius:12px;padding:6px;min-width:200px;box-shadow:0 10px 30px rgba(0,0,0,.5)}#popup .ptitle{font-weight:700;padding:4px 8px 6px;color:var(--acc);font-size:13px}#popup button{display:flex;gap:8px;align-items:center;width:100%;text-align:left;margin:3px 0;padding:6px 8px;background:var(--panel2)}#popup button span{font-size:22px}#popup button small{display:block;color:var(--muted)}
+#popup{position:absolute;display:none;z-index:15;max-height:calc(100% - 16px);overflow:auto;background:rgba(12,18,24,.97);border:1px solid var(--acc);border-radius:14px;padding:10px 12px 12px;width:340px;box-shadow:0 12px 40px rgba(0,0,0,.6);font-size:13px}#popup .ptitle{font-weight:800;padding:2px 26px 6px 0;color:var(--acc);font-size:17px}#popup .photo{max-height:150px;object-fit:cover;margin:2px 0 6px}#popup .pacts{display:flex;flex-direction:column;gap:4px;margin-top:8px;border-top:1px solid var(--line);padding-top:8px}#popup .pclose{position:absolute;top:8px;right:8px;padding:2px 8px;width:auto;display:block;margin:0}#popup button{display:flex;gap:8px;align-items:center;width:100%;text-align:left;margin:3px 0;padding:6px 8px;background:var(--panel2)}#popup button span{font-size:22px}#popup button small{display:block;color:var(--muted)}
 #prepbar{position:absolute;left:50%;top:60px;transform:translateX(-50%);display:none;gap:10px;align-items:center;background:rgba(12,18,24,.95);border:1px solid #5ac8ff;border-radius:12px;padding:8px 12px;z-index:14}#prepbar button.go{width:auto;padding:6px 14px;font-size:14px}
 #btnEnd.pulse{animation:pulse 1s infinite}@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(255,138,90,.25);transform:scale(1.04)}}.acts-dots{letter-spacing:2px;color:var(--acc)}
 @media (max-width:900px){#game{grid-template-columns:1fr}#side{display:none}#log{width:60%}}
@@ -84,7 +84,7 @@ button.go{width:100%;font-size:17px;font-weight:700;padding:12px;background:#1f6
     <div id="saves"></div>
   </div>
   <a class="mel" href="https://cienciavida.org" target="_blank" rel="noopener" title="Microbial Ecophysiology Lab — Fundación Ciencia &amp; Vida"><img src="img/logoMEL.svg" alt="Microbial Ecophysiology Lab"></a>
-  <div class="credits"><b class="ver" style="color:#ffe28a;font-size:14px">v1.8 · 2026-10-20 12:55</b><br>Datos reales: campañas Copahue 2019–2020 · Arisan et al. 2024 · Moya‑Beltrán et al. 2021</div>
+  <div class="credits"><b class="ver" style="color:#ffe28a;font-size:14px">v2.0 · 2026-10-20 13:38</b><br>Datos reales: campañas Copahue 2019–2020 · Arisan et al. 2024 · Moya‑Beltrán et al. 2021</div>
 </div>
 <div id="pick"><button id="pickClose">✕</button><h2><span data-i="chooseFaction">Elige tu comunidad</span> · <span id="pickMode"></span></h2><div id="factions"></div></div>
 <div id="game">

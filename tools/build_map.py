@@ -136,10 +136,75 @@ for h in hexes:
     if h.get('river') == 'Lago Caviahue' and 'site' not in h:
         for v in VARS: h[v] = lc[v]
     if h['t'] not in ('land', 'mountain', 'fumarole') and h.get('ph', 7) > 4.5 and 'site' not in h: h['fe'] = round(min(h['fe'], 5), 1)
+# ---- tableros más grandes por remuestreo del tablero base (rápida 2x, campaña 4x en superficie) ----
+SQ3 = math.sqrt(3)
+def center_small(c, r): return ((c + .5 + .5 * (r & 1)) * SQ3, 1 + 1.5 * r)
+def neighbors(c, r, C, R):
+    odd = r & 1; cand = [(c-1,r),(c+1,r),(c-1+odd,r-1),(c+odd,r-1),(c-1+odd,r+1),(c+odd,r+1)]
+    return [(a, b) for a, b in cand if 0 <= a < C and 0 <= b < R]
+riverpos = {}
+for name, pts in RIVERS.items():
+    for n, p in enumerate(pts): riverpos[p] = n
+def resample(C2, R2):
+    k = COLS / C2
+    out = []; nearest = {}
+    for r2 in range(R2):
+        for c2 in range(C2):
+            x2, y2 = (c2 + .5 + .5 * (r2 & 1)) * SQ3 * k, (1 + 1.5 * r2) * k
+            best = None
+            for h in hexes:
+                x, y = center_small(h['c'], h['r']); d = (x - x2) ** 2 + (y - y2) ** 2
+                if best is None or d < best[0]: best = (d, h)
+            sh = best[1]
+            h2 = {'c': c2, 'r': r2, 'i': len(out), 't': sh['t'], 'el': sh['el'] + int(90 * math.sin(c2 * 1.7 + r2 * 2.3)), 'down': [], 'src': sh['i']}
+            for v in ['river', 'madeBy', 'exit'] + VARS:
+                if v in sh: h2[v] = sh[v]
+            if 'exit' in h2: del h2['exit']
+            out.append(h2); nearest[(c2, r2)] = sh
+    idx2 = {(h['c'], h['r']): h['i'] for h in out}
+    water2 = [h for h in out if h['t'] not in ('land', 'mountain', 'fumarole')]
+    # sitios: hex grande más cercano al sitio chico (único, mismo río)
+    taken = set(); site_hex2 = {}
+    for code, k0 in SITE_AT.items():
+        x, y = center_small(*k0); best = None
+        for h in water2:
+            if h['i'] in taken or h.get('river') != hexes[idx[k0]].get('river'): continue
+            x2, y2 = (h['c'] + .5 + .5 * (h['r'] & 1)) * SQ3 * k, (1 + 1.5 * h['r']) * k
+            d = (x - x2) ** 2 + (y - y2) ** 2
+            if best is None or d < best[0]: best = (d, h)
+        h = best[1]; taken.add(h['i']); site_hex2[code] = h['i']; h['site'] = code
+        for kk, v in sites[code]['v'].items(): h[kk] = v
+    # flujo
+    def pos(h): return riverpos.get((hexes[h['src']]['c'], hexes[h['src']]['r']), 0)
+    for h in water2:
+        sh = hexes[h['src']]; sdown = set(sh['down'])
+        if sh['t'] == 'lake' or h['t'] == 'lake':
+            pass
+        dn = []
+        for (a, b) in neighbors(h['c'], h['r'], C2, R2):
+            j = out[idx2[(a, b)]]
+            if j['t'] in ('land', 'mountain', 'fumarole'): continue
+            if j['src'] in sdown and j['src'] != h['src']: dn.append(j['i'])
+            elif j.get('river') == h.get('river') and h['t'] != 'lake' and pos(j) > pos(h): dn.append(j['i'])
+        if not dn and sh['down']:
+            tgt = hexes[sh['down'][0]]; x, y = center_small(tgt['c'], tgt['r']); best = None
+            for j in water2:
+                if j['src'] != tgt['i']: continue
+                x2, y2 = (j['c'] + .5 + .5 * (j['r'] & 1)) * SQ3 * k, (1 + 1.5 * j['r']) * k
+                d = (x - x2) ** 2 + (y - y2) ** 2
+                if best is None or d < best[0]: best = (d, j)
+            if best: dn = [best[1]['i']]
+        h['down'] = list(dict.fromkeys(dn))
+        if not h['down'] and sh.get('exit'): h['exit'] = True
+    for h in out: del h['src']
+    print('board', C2, 'x', R2, 'water', len(water2), file=sys.stderr)
+    return {'cols': C2, 'rows': R2, 'hexes': out, 'siteHex': site_hex2, 'elev': [h['el'] for h in out]}
+BOARDS = {'s': {'cols': COLS, 'rows': ROWS, 'hexes': hexes, 'siteHex': {c: idx[k] for c, k in SITE_AT.items()}, 'elev': [h['el'] for h in hexes]},
+          'm': resample(23, 16), 'l': resample(32, 22)}
 taxa = {}
 for code, t in D['taxa'].items():
     taxa[code] = {'reads': t['total_reads'], 'genus': [[g, p] for g, p, n in t['genus'][:8]], 'shannon': t['shannon'], 'mags': t['mags'], 'acidithio': t.get('acidithio')}
-out = {'cols': COLS, 'rows': ROWS, 'hexes': hexes, 'sites': sites, 'siteHex': {c: idx[k] for c, k in SITE_AT.items()}, 'taxa': taxa, 'elev': [h['el'] for h in hexes]}
+out = {'boards': BOARDS, 'sites': sites, 'taxa': taxa}
 water = [h for h in hexes if h['t'] not in ('land', 'mountain', 'fumarole')]
 print('water hexes', len(water), 'of', len(hexes), file=sys.stderr)
 os.makedirs(os.path.dirname(OUT) or '.', exist_ok=True)

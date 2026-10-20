@@ -30,14 +30,14 @@ externa, transferencia horizontal de genes, ICE, quorum sensing, fagos/CRISPR, s
 | Los Nómades (IA) | *Sulfobacillus* + *Thiomonas* | VA2 | mixótrofos, endosporas |
 
 ## Mecánicas
-- **Mapa**: tablero de 16×11 hexágonos estilo Civilization VI (terreno pintado continuo, montañas, bosques, ríos serpenteantes, fronteras de color, carteles de ciudad), 47 de agua, con la forma del sistema real:
+- **Mapa**: tablero estilo Civilization VI (23×16 hexes en partida rápida, 32×22 en campaña; el tablero base de 16×11 se remuestrea) (terreno pintado continuo, montañas, bosques, ríos serpenteantes, fronteras de color, carteles de ciudad), 47 de agua, con la forma del sistema real:
   volcán y vertientes al noroeste, Agrio Superior, Jara, lago Caviahue, Agrio Inferior hasta el Salto, Puerta de Trolope y Loncopué,
   Chancho‑Có y las Mellizas. Cada hex de agua tiene pH, temperatura, Fe, SO₄ y O₂ reales (interpolados entre sitios de muestreo).
   El color del agua sale del pH y el hierro (rojo‑óxido en el Agrio, turquesa en el lago, azul en el Jara) y se tiñe
   con la facción que domina el sector.
 - **Aptitud**: curva gaussiana de pH y temperatura respecto al óptimo de cada facción, con castigos por poco O₂, metales y sal.
 - **Recursos**: energía (S, Fe o carbono orgánico), carbono (RuBisCO o materia orgánica) y nutrientes (N, P).
-- **Turno**: 3 acciones: colonizar/competir (clic en los hexes que brillan), biofilm (3 niveles), vesículas (enzimas, toxinas, ADN), adquirir un poder, cambiar de modo (Expandir/Defender) o **Preparar agua**: una vez por turno, crear hasta 3 casillas de agua en tierra pegada a tu territorio, con tu propia química (pH y temperatura óptimos); cualquiera puede colonizarlas, pero te favorecen a ti. Al hacer clic en un hex aparece un menú con lo que puedes hacer ahí.
+- **Turno**: 3 acciones (6 en el primer turno): colonizar/competir (clic en los hexes que brillan), biofilm (3 niveles), vesículas (enzimas, toxinas, ADN), adquirir un poder, cambiar de modo (Expandir/Defender) o **Preparar agua** (1 acción): crear hasta 3 casillas de agua en tierra pegada a tu territorio, con tu propia química (pH y temperatura óptimos); cualquiera puede colonizarlas, pero te favorecen a ti. Al hacer clic en un hex aparece un menú con lo que puedes hacer ahí.
 - **Poderes**: 8 genes reales (escudo ácido, resistir calor, flagelos, biofilm Pel, CRISPR, toxinas, esporas, comer hierro); se consiguen por mutación, conjugación (vecino con el gen; ICE la abarata),
   transformación (ADN libre que queda al morir una población) o transducción (tras una tormenta de fagos).
 - **Diplomacia**: sintrofia (alianza autótrofo + heterótrofo), paz, guerra, regalos; la IA tiene personalidad y frases.
@@ -56,4 +56,4 @@ externa, transferencia horizontal de genes, ICE, quorum sensing, fagos/CRISPR, s
 - Arisan D, Moya‑Beltrán A, Rojas‑Villalobos C, Issotta F, et al. (2024) *Acidithiobacillia class members originating at sites within the Pacific Ring of Fire and other tectonically active locations and description of the novel genus ‘Igneacidithiobacillus’*. Front. Microbiol. 15:1360268.
 - Moya‑Beltrán A, et al. (2021) *Genomic evolution of the class Acidithiobacillia: deep‑branching Proteobacteria living in extreme acidic conditions*. ISME J 15:3221–3238.
 
-Microbial Ecophysiology Lab (Fundación Ciencia & Vida) · Bioinformatics‑lab (USACH). Versión 1.0 — octubre 2026.
+Microbial Ecophysiology Lab (Fundación Ciencia & Vida). Versión 1.0 — octubre 2026.

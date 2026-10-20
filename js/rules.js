@@ -9,9 +9,9 @@ const KEY=(a,b)=>a<b?a+'|'+b:b+'|'+a;
 
 function newState(map,opts){
   const st={mode:opts.mode,turn:1,maxTurns:opts.mode==='quick'?25:120,human:opts.faction,user:opts.user,created:Date.now(),
-    hexes:new Array(map.d.hexes.length).fill(null),factions:{},relations:{},alliances:{},wars:{},events:[],activeMods:[],log:[],msgs:[],winner:null,over:false,era:0,phase:'human',timer:opts.mode==='quick'?75:0};
+    board:opts.board||'m',hexes:new Array(map.d.hexes.length).fill(null),factions:{},relations:{},alliances:{},wars:{},events:[],activeMods:[],log:[],msgs:[],winner:null,over:false,era:0,phase:'human',timer:opts.mode==='quick'?75:0};
   for(const i of map.playable){const h=map.d.hexes[i];st.hexes[i]={owner:null,pop:0,biofilm:0,eff:{ph:h.ph,T:h.T,fe:h.fe,so4:h.so4,o2:h.o2,ec:h.ec,as:h.as||0},shield:0,eDNA:null,eDNAttl:0};}
-  for(const f of FACTIONS){st.factions[f.id]={res:{energy:10,carbon:8,nutrients:6},genes:f.genes.slice(),acquired:0,cdg:f.personality.expand>.65?'low':'high',cdgPending:null,alive:true,actions:ACTIONS_PER_TURN,score:0,allySince:{}};
+  for(const f of FACTIONS){st.factions[f.id]={res:{energy:10,carbon:8,nutrients:6},genes:f.genes.slice(),acquired:0,cdg:f.personality.expand>.65?'low':'high',cdgPending:null,alive:true,actions:6,score:0,allySince:{}};
     const home=map.d.siteHex[f.home];const hs=st.hexes[home];hs.owner=f.id;hs.pop=6;hs.biofilm=f.bonus.biofilm?1:0;
     // a second seed hex: best adjacent water hex by fitness
     let best=null;for(const j of map.nbr[home]){const s2=st.hexes[j];if(!s2||s2.owner)continue;const fit=fitness(f.id,st,j,map);if(!best||fit>best[0])best=[fit,j];}
@@ -188,7 +188,7 @@ function score(st,f,map){const P=st.factions[f];let s=territory(st,f)*3+Math.rou
 // ---- preparar: crear hasta 3 casillas de agua con la química del creador (cualquiera puede colonizarlas) ----
 function prepareCandidates(f,st,map,picked){picked=picked||[];const out=new Set();const own=map.playable.filter(i=>st.hexes[i]&&st.hexes[i].owner===f).concat(picked);
   for(const i of own)for(const j of map.nbr[i]){const h=map.d.hexes[j];if(h.t==='land'&&picked.indexOf(j)<0)out.add(j);}return [...out];}
-function canPrepare(f,st){const P=st.factions[f];if(P.actions<=0)return 'noActions';if(P.preparedTurn===st.turn)return 'oncePerTurn';if(P.res.carbon<3)return 'notEnough';return 'ok';}
+function canPrepare(f,st){const P=st.factions[f];if(P.actions<=0)return 'noActions';if(P.res.carbon<3)return 'notEnough';return 'ok';}
 function madeChem(f){const F=FBY[f];const acid=F.phOpt<4;return {ph:F.phOpt,T:F.tOpt,fe:F.energy.indexOf('Fe')>=0?300:(acid?60:0.3),so4:acid?2500:300,o2:55,ec:acid?3500:500,as:0};}
 function convertHex(st,map,i,by){const h=map.d.hexes[i];if(h.t!=='land')return false;map.orig[i]=map.orig[i]||JSON.parse(JSON.stringify(h));const F=FBY[by];const ch=madeChem(by);
   h.t='made';h.madeBy=by;h.river=(FBY[by].name.es||'')?('Poza de '+(FBY[by].name.es)):'Poza';Object.assign(h,ch);

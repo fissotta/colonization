@@ -15,7 +15,7 @@ function hash(i,j){let h=(i*374761393+j*668265263)|0;h=(h^(h>>13))*1274126177;re
 const C_CRATER=hex2rgb('#b9cfc3'),C_RUST=hex2rgb('#c7491c'),C_RUST2=hex2rgb('#e2782c'),C_ACID=hex2rgb('#2fc1b8'),C_MID=hex2rgb('#3fb391'),C_NEUT=hex2rgb('#3a8fe6'),C_HOT=hex2rgb('#9ac3d3');
 function waterColor(h){const ph=h.ph!==undefined?h.ph:7,fe=h.fe||0;let c;
   if(ph<1.5)c=mix(C_CRATER,C_RUST,clamp((fe-50)/800,0,1)*.6);
-  else if(ph<3.6){const k=clamp(Math.log10(fe+1)/3.1,0,1);c=k>.5?mix(C_RUST2,C_RUST,(k-.5)*2):mix(C_ACID,C_RUST2,k*2);}
+  else if(ph<3.6){const k=clamp((Math.log10(fe+1)-1.2)/2,0,1);c=k>.5?mix(C_RUST2,C_RUST,(k-.5)*2):mix(C_ACID,C_RUST2,k*2);}
   else if(ph<5.5){c=mix(mix(C_MID,C_RUST2,clamp(fe/40,0,1)*.5),C_NEUT,(ph-3.6)/1.9*.5);}
   else c=mix(C_MID,C_NEUT,clamp((ph-5.5)/1.5,0,1));
   if(h.t==='hot')c=mix(c,C_HOT,.5);return c;}
@@ -159,9 +159,12 @@ class HexMapRenderer{
         ctx.fillStyle='#fff';ctx.font=`bold ${Math.max(9,s*.24)|0}px system-ui,sans-serif`;ctx.textAlign='left';ctx.fillText(label,bx+bh*.95,by+bh/2+1);ctx.textAlign='center';
         ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(x-1,by+bh,2,s*.2);}
       if(st&&st.owner&&st.pop>0){const f=FBY[st.owner];const rr=s*.2;ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.arc(x+2,y+2,rr,0,6.28);ctx.fill();ctx.fillStyle=f.color;ctx.beginPath();ctx.arc(x,y,rr,0,6.28);ctx.fill();ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1.5;ctx.stroke();ctx.fillStyle='#111';ctx.font=`bold ${Math.max(9,s*.3)|0}px system-ui,sans-serif`;ctx.fillText(Math.round(st.pop),x,y+1);}
+      if(st&&st.owner){const f=FBY[st.owner];ctx.font=`${Math.max(10,s*.34)|0}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.arc(x-s*.5,y-s*.48,s*.2,0,6.28);ctx.fill();ctx.fillText(f.icon,x-s*.5,y-s*.47);}
       if(st&&st.shield>0){ctx.strokeStyle='rgba(120,220,255,.95)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,s*.3,0,6.28);ctx.stroke();}
       if(st&&st.eDNA){ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+s*.4,y-s*.32,s*.11,0,6.28);ctx.fill();ctx.fillStyle='#333';ctx.font=`bold ${Math.max(8,s*.16)|0}px system-ui,sans-serif`;ctx.fillText('ADN',x+s*.4,y-s*.31);}
     }
+    // marcas de lo que hicieron las otras facciones
+    if(state&&state.markers){for(let k=state.markers.length-1;k>=0;k--){const m=state.markers[k];m.ttl-=dt;if(m.ttl<=0){state.markers.splice(k,1);continue;}const [x,y]=this.center(m.i);const a=Math.min(1,m.ttl);ctx.globalAlpha=a;ctx.font=`bold ${Math.max(10,s*.28)|0}px system-ui,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';const w=ctx.measureText(m.text).width+14,hh=s*.42;const by=y+s*.62-(1-a)*s*.3;ctx.fillStyle='rgba(10,14,18,.92)';ctx.beginPath();ctx.roundRect(x-w/2,by,w,hh,6);ctx.fill();ctx.strokeStyle=m.color;ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#fff';ctx.fillText(m.text,x,by+hh/2+1);ctx.globalAlpha=1;}}
     // partículas
     for(let k=this.particles.length-1;k>=0;k--){const p=this.particles[k];p.x+=p.vx*s*.1;p.y+=p.vy*s*.1;p.life-=dt*.8;if(p.life<=0){this.particles.splice(k,1);continue;}
       ctx.globalAlpha=p.life;ctx.fillStyle=p.kind==='toxin'?'#c04bff':p.kind==='gift'?'#8fff9a':p.kind==='dna'?'#fff':p.kind==='colonize'?'#fff2a8':'#ff8a3a';ctx.beginPath();ctx.arc(p.x,p.y,s*.07,0,6.28);ctx.fill();ctx.globalAlpha=1;}
