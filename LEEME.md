@@ -30,15 +30,15 @@ externa, transferencia horizontal de genes, ICE, quorum sensing, fagos/CRISPR, s
 | Los Nómades (IA) | *Sulfobacillus* + *Thiomonas* | VA2 | mixótrofos, endosporas |
 
 ## Mecánicas
-- **Mapa**: 850 hexágonos sobre el modelo digital de elevación real; 95 hexes de agua siguen los ríos Agrio Superior e Inferior,
-  Jara, Rojo, Blanco, Dulce, Chinchiví, el estero Chancho‑Có, el lago Caviahue, la laguna del cráter y las vertientes.
-  Cada hex tiene pH, temperatura, Fe, SO₄, O₂ y conductividad reales (interpolados entre sitios de muestreo).
+- **Mapa**: tablero de 16×11 hexágonos grandes en pseudo‑3D (relieve, bosques, nieve, vapor), 47 de agua, con la forma del sistema real:
+  volcán y vertientes al noroeste, Agrio Superior, Jara, lago Caviahue, Agrio Inferior hasta el Salto, Puerta de Trolope y Loncopué,
+  Chancho‑Có y las Mellizas. Cada hex de agua tiene pH, temperatura, Fe, SO₄ y O₂ reales (interpolados entre sitios de muestreo).
   El color del agua sale del pH y el hierro (rojo‑óxido en el Agrio, turquesa en el lago, azul en el Jara) y se tiñe
   con la facción que domina el sector.
 - **Aptitud**: curva gaussiana de pH y temperatura respecto al óptimo de cada facción, con castigos por poco O₂, metales y sal.
 - **Recursos**: energía (S, Fe o carbono orgánico), carbono (RuBisCO o materia orgánica) y nutrientes (N, P).
 - **Turno**: 3 acciones: colonizar/competir, biofilm (3 niveles), vesículas (enzimas, toxinas, ADN), adquirir gen, cambiar c‑di‑GMP.
-- **Genes**: pangenoma abierto de 19 genes; se consiguen por mutación, conjugación (vecino con el gen; ICE la abarata),
+- **Poderes**: 8 genes reales (escudo ácido, resistir calor, flagelos, biofilm Pel, CRISPR, toxinas, esporas, comer hierro); se consiguen por mutación, conjugación (vecino con el gen; ICE la abarata),
   transformación (ADN libre que queda al morir una población) o transducción (tras una tormenta de fagos).
 - **Diplomacia**: sintrofia (alianza autótrofo + heterótrofo), paz, guerra, regalos; la IA tiene personalidad y frases.
 - **Eventos** cada 4–5 turnos: erupción, deshielo, verano, fagos, expedición de muestreo, ceniza, sequía.

@@ -15,7 +15,7 @@ function takeTurn(f,st,map,say){
   while(P.actions>0&&guard++<8){
     // 1. genes
     let did=false;
-    if(R()<.35){const list=PRIORITY[F.metab]||PRIORITY.auto;for(const g of list){if(Rules.has(st,f,g))continue;const r=Rules.geneRoutes(f,st,g,map)[0];const c=Rules.geneCost(g,r.k,st,f);
+    if(R()<.35){const list=(PRIORITY[F.metab]||PRIORITY.auto).filter(x=>GBY[x].show);for(const g of list){if(Rules.has(st,f,g))continue;const r=Rules.geneRoutes(f,st,g,map)[0];const c=Rules.geneCost(g,r.k,st,f);
         if(P.res.energy>=c.energy+4&&P.res.carbon>=c.carbon+3){const res=Rules.doGene(f,st,g,map);if(res.ok){did=true;if(say&&R()<.3)say(f,'gene',{g,via:res.via});}break;}
         break;}}
     if(did)continue;
@@ -24,7 +24,7 @@ function takeTurn(f,st,map,say){
     for(const i of map.playable){const s=st.hexes[i];if(s.owner!==f||s.pop<3.5)continue;
       for(const j of Rules.colonizeTargets(f,st,i,map)){const t=st.hexes[j];const h=map.d.hexes[j];let v;
         if(!t.owner){v=Rules.colonizeOdds(f,st,i,j,map)*(h.site?1.25:1)*(h.t==='lake'?1.1:1);}
-        else{if(Rules.isAllied(st,f,t.owner))continue;const p=Rules.combat(f,st,i,j,map);const hostile=Rules.atWar(st,f,t.owner)||Rules.rel(st,f,t.owner)<-15;v=(p>.62&&(hostile||R()<pr.aggr*.5))?p*.9*pr.aggr+.2:0;}
+        else{if(Rules.isAllied(st,f,t.owner)||st.turn<6)continue;const p=Rules.combat(f,st,i,j,map);const hostile=Rules.atWar(st,f,t.owner)||Rules.rel(st,f,t.owner)<-15;v=(p>.62&&(hostile||R()<pr.aggr*.5))?p*.9*pr.aggr+.2:0;}
         if(v>.3&&(!best||v>best.v))best={v,i,j};}}
     if(best&&P.res.energy>=3){const r=Rules.doColonize(f,st,best.i,best.j,map);if(r.ok){did=true;if(say&&st.hexes[best.j].owner===f&&R()<.25)say(f,'colonize',{to:best.j});if(say&&r.won===false&&R()<.2)say(f,'failed',{to:best.j});}}
     if(did)continue;

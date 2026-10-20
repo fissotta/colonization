@@ -12,7 +12,7 @@ function newState(map,opts){
     hexes:new Array(map.d.hexes.length).fill(null),factions:{},relations:{},alliances:{},wars:{},events:[],activeMods:[],log:[],msgs:[],winner:null,over:false,era:0,phase:'human',timer:opts.mode==='quick'?75:0};
   for(const i of map.playable){const h=map.d.hexes[i];st.hexes[i]={owner:null,pop:0,biofilm:0,eff:{ph:h.ph,T:h.T,fe:h.fe,so4:h.so4,o2:h.o2,ec:h.ec,as:h.as||0},shield:0,eDNA:null,eDNAttl:0};}
   for(const f of FACTIONS){st.factions[f.id]={res:{energy:10,carbon:8,nutrients:6},genes:f.genes.slice(),acquired:0,cdg:f.personality.expand>.65?'low':'high',cdgPending:null,alive:true,actions:ACTIONS_PER_TURN,score:0,allySince:{}};
-    const home=map.d.siteHex[f.home];const hs=st.hexes[home];hs.owner=f.id;hs.pop=5;hs.biofilm=f.bonus.biofilm?1:0;
+    const home=map.d.siteHex[f.home];const hs=st.hexes[home];hs.owner=f.id;hs.pop=6;hs.biofilm=f.bonus.biofilm?1:0;
     // a second seed hex: best adjacent water hex by fitness
     let best=null;for(const j of map.nbr[home]){const s2=st.hexes[j];if(!s2||s2.owner)continue;const fit=fitness(f.id,st,j,map);if(!best||fit>best[0])best=[fit,j];}
     if(best&&best[0]>.2){st.hexes[best[1]].owner=f.id;st.hexes[best[1]].pop=3;}
@@ -106,7 +106,7 @@ function geneRoutes(f,st,g,map){const routes=[{via:'mutation',k:1}];const P=st.f
   if(P.phageGene===g)routes.push({via:'transduction',k:.3});
   routes.sort((a,b)=>a.k-b.k);return routes;}
 function geneCost(g,k,st,f){const G=GBY[g];const n=(st&&f)?(st.factions[f].acquired||0):0;const m=2*(1+.25*n);return {energy:Math.ceil(G.cost.energy*k*m),carbon:Math.ceil(G.cost.carbon*k*m)};}
-function doGene(f,st,g,map){const P=st.factions[f];if(has(st,f,g))return {ok:false,msg:'owned'};if(P.actions<=0)return {ok:false,msg:'noActions'};
+function doGene(f,st,g,map){const P=st.factions[f];if(has(st,f,g))return {ok:false,msg:'owned'};if(!GBY[g].show)return {ok:false,msg:'hidden'};if(P.actions<=0)return {ok:false,msg:'noActions'};
   const r=geneRoutes(f,st,g,map)[0];const c=geneCost(g,r.k,st,f);if(P.res.energy<c.energy||P.res.carbon<c.carbon)return {ok:false,msg:'notEnough'};
   P.res.energy-=c.energy;P.res.carbon-=c.carbon;P.actions--;P.genes.push(g);P.acquired=(P.acquired||0)+1;if(r.via==='transformation'){st.hexes[r.hex].eDNA=null;}if(r.via==='transduction')P.phageGene=null;
   if(r.via==='conjugation'&&r.from)addRel(st,f,r.from,3);log(st,'gene',{f,g,via:r.via});return {ok:true,via:r.via};}
@@ -155,7 +155,7 @@ function worldTurn(st,map){
   for(const F of FACTIONS){const f=F.id,P=st.factions[f];if(!P.alive)continue;let inc={energy:0,carbon:0,nutrients:0};
     for(const i of map.playable){const s=st.hexes[i];if(s.owner!==f)continue;const y=yields(f,st,i,map);inc.energy+=y.energy;inc.carbon+=y.carbon;inc.nutrients+=y.nutrients;
       const fit=y.fit;let g=(.9+(F.bonus.growth||0))*fit;if(f==='neut'&&s.eff.ph>=5.5)g*=1.6;if(F.metab==='auto'&&!has(st,f,'rubisco'))g*=.7;
-      const nutK=clamp(P.res.nutrients/6,.5,1.2);g*=nutK;
+      
       if(fit<.12)g=-1;else if(fit<.25)g-=.4;
       s.pop=clamp(s.pop+g,0,capacity(st,i,map));
       if(s.pop<=0.2){leaveDNA(st,i,f);s.owner=null;s.pop=0;s.biofilm=0;}
@@ -176,7 +176,7 @@ function worldTurn(st,map){
   return ev;
 }
 function eraOf(st){const P=st.factions[st.human];const n=P.genes.length;const allies=Object.keys(st.alliances).filter(k=>k.split('|').indexOf(st.human)>=0).length;if(allies>=2)return 3;if(n>=9)return 2;if(n>=6)return 1;return 0;}
-function checkVictory(st,map){if(st.over)return;const total=map.playable.length;const q=st.mode==='quick';const domK=q?.4:.6,genN=q?14:16,allyT=q?8:10;
+function checkVictory(st,map){if(st.over)return;const total=map.playable.length;const q=st.mode==='quick';const domK=q?.4:.6,genN=8,allyT=q?8:10;
   for(const F of FACTIONS){const f=F.id;const terr=territory(st,f);
     if(terr>=total*domK){st.over=true;st.winner={f,kind:'domination'};return;}
     if((st.factions[f].acquired||0)>=genN){st.over=true;st.winner={f,kind:'genetic'};return;}

@@ -25,12 +25,13 @@ input,select{font:inherit;background:#0f161d;color:var(--txt);border:1px solid v
 .modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}button.big{text-align:left;padding:12px 14px;display:flex;flex-direction:column;gap:3px}button.big b{font-size:16px}button.big small{color:var(--muted)}
 #saves{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 #langBtn{position:absolute;top:14px;right:16px;z-index:21}
+.mel{position:relative;display:block;margin:22px auto 0;background:rgba(255,255,255,.92);border-radius:14px;padding:10px 18px;width:min(520px,90vw);box-shadow:0 6px 30px rgba(0,0,0,.45)}.mel img{display:block;width:100%;height:auto}
 .credits{position:relative;margin-top:16px;color:#8a7a6a;font-size:12px;text-align:center;max-width:720px}
 /* faction picker */
 #pick{position:fixed;inset:0;display:none;background:rgba(0,0,0,.85);z-index:30;overflow:auto;padding:20px}#pick.open{display:block}
-#pick h2{text-align:center;color:var(--acc);margin:6px 0 14px}#factions{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;max-width:1300px;margin:0 auto}
-.fcard{background:var(--panel);border:2px solid;border-radius:12px;padding:12px;cursor:pointer;transition:transform .15s}.fcard:hover{transform:translateY(-3px);background:var(--panel2)}
-.fname{font-weight:800;font-size:18px}.ftax{font-style:italic;color:#d8d8d8}.fsp{font-size:12px;color:var(--muted)}.flead{margin:6px 0;font-size:13px}.fcard ul{margin:6px 0;padding-left:18px;font-size:12.5px;color:#cfd8e0}.fq{font-style:italic;color:var(--muted);font-size:12px}
+#pick h2{text-align:center;color:var(--acc);margin:6px 0 14px}#factions{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;max-width:1100px;margin:0 auto}
+.fcard{background:linear-gradient(180deg,var(--panel2),var(--panel));border:3px solid var(--fc);border-radius:18px;padding:16px 12px;cursor:pointer;transition:transform .15s;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.4)}.fcard:hover{transform:translateY(-6px) scale(1.03);box-shadow:0 0 30px var(--fc)}.ficon{font-size:56px;line-height:1.1}.fshort{font-size:13px;color:#d8e0e8;margin:6px 0}.fchips{display:flex;gap:6px;justify-content:center;margin:8px 0}.fchips span{background:#0a0e12;border-radius:12px;padding:2px 8px;font-size:12px}
+.fname{font-weight:800;font-size:17px;color:var(--fc)}.ftax{font-style:italic;color:var(--muted);font-size:11px}.fsp{font-size:12px;color:var(--muted)}.flead{margin:6px 0;font-size:13px}.fcard ul{margin:6px 0;padding-left:18px;font-size:12.5px;color:#cfd8e0}.fq{font-style:italic;color:var(--muted);font-size:12px}
 #pickClose{position:fixed;top:14px;right:16px}
 /* game */
 #game{position:fixed;inset:0;display:none;grid-template-rows:46px 1fr;grid-template-columns:1fr 340px;z-index:10}#game.open{display:grid}
@@ -42,7 +43,8 @@ input,select{font:inherit;background:#0f161d;color:var(--txt);border:1px solid v
 #hexpanel{padding:12px;overflow:auto;flex:1;font-size:13px}.hname{font-size:17px;font-weight:700}.code{font-size:11px;background:#0a0e12;padding:1px 6px;border-radius:6px;color:var(--acc);vertical-align:middle}.htype{color:var(--muted);font-size:12px;margin-bottom:6px}
 .photo{width:100%;border-radius:8px;margin:6px 0;border:1px solid var(--line)}
 .chem{display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;font-size:12px;margin:6px 0}.chem span{background:#0f161d;padding:3px 6px;border-radius:6px}.own{margin:8px 0;line-height:1.5}.fit{margin:4px 0}
-.acts{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.acts button{flex:1 1 45%}.acts small{display:block;color:var(--muted)}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.acts button{flex:1 1 45%}.acts small{display:block;color:var(--muted)}.acts.big3 button{flex:1 1 30%;padding:10px 4px;font-size:13px}.bi{display:block;font-size:26px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.pcard{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center}.pcard.own{border-color:#3fbf8f}.pcard .pi{font-size:40px}.pcard button{width:100%;margin-top:6px}.pcard .ok{display:block;color:#3fbf8f;font-size:22px;margin-top:6px}
 .taxa{margin-top:8px;border-top:1px solid var(--line);padding-top:6px}.tx{display:grid;grid-template-columns:120px 1fr 44px;gap:6px;align-items:center;font-size:11px}.tx span{font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #bottom{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:flex-end;gap:10px;padding:10px;pointer-events:none}
 #bottom>*{pointer-events:auto}#log{width:420px;max-height:150px;overflow:auto;background:rgba(10,14,18,.8);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:12px;line-height:1.45}.le small{color:var(--muted);margin-right:4px}
@@ -74,6 +76,7 @@ ul.help li{margin:4px 0}
     <div class="modes"><button class="big" id="btnQuick"><b data-i="quick">Partida rápida</b><small data-i="quickDesc">25 turnos · ~30 min · reloj por turno</small></button><button class="big" id="btnCampaign"><b data-i="campaign">Campaña</b><small data-i="campaignDesc">120 turnos · pausa y guardado · sin reloj</small></button></div>
     <div id="saves"></div>
   </div>
+  <a class="mel" href="https://cienciavida.org" target="_blank" rel="noopener" title="Microbial Ecophysiology Lab — Fundación Ciencia &amp; Vida"><img src="img/logoMEL.svg" alt="Microbial Ecophysiology Lab"></a>
   <div class="credits">Datos reales: campañas Copahue 2019–2020 · Arisan et al. 2024 (<i>Igneacidithiobacillus copahuensis</i>) · Moya‑Beltrán et al. 2021 · Hecho con cariño para el Bioinformatics‑lab (USACH). Sonido procedural: sube el volumen.</div>
 </div>
 <div id="pick"><button id="pickClose">✕</button><h2><span data-i="chooseFaction">Elige tu comunidad</span> · <span id="pickMode"></span></h2><div id="factions"></div></div>
