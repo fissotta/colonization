@@ -1,9 +1,10 @@
 // COLONIZATION — interfaz, flujo de turnos, modos de juego
 'use strict';
 (function(){
-const VERSION='v1.6 · 2026-10-20 12:48';
+const VERSION='v1.7 · 2026-10-20 12:53';
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let autoEndTimer=null;
 let map,st=null,mode=null,lastT=0,timerLeft=0,paused=false,pendingMsgs=[],user='',tipShown={};
 const canvas=$('#map');
 function resize(){const wrap=$('#mapwrap');canvas.width=wrap.clientWidth*devicePixelRatio;canvas.height=wrap.clientHeight*devicePixelRatio;canvas.style.width=wrap.clientWidth+'px';canvas.style.height=wrap.clientHeight+'px';if(map)map.fit();}
@@ -41,7 +42,7 @@ function startNew(m,fid){$('#pick').classList.remove('open');const s=Rules.newSt
 function openTutorial(){const F=FBY[st.human];openModal(`<h3>${F.icon} ${L({es:'Cómo se juega',en:'How to play'})}</h3><div class="tut">
   <div><span class="n">1</span><div><b>${L({es:'Tú eres',en:'You are'})} <span style="color:${F.color}">${esc(L(F.name))}</span>.</b><br>${L({es:'Tus hexes tienen tu color y una bandera 🚩 marca tu casa.',en:'Your hexes carry your colour and a flag 🚩 marks your home.'})}</div></div>
   <div><span class="n">2</span><div><b>${L({es:'Los hexes que brillan (borde blanco punteado) son a los que puedes ir.',en:'Glowing hexes (dashed white border) are where you can go.'})}</b><br>${L({es:'Haz clic en uno y listo: colonizas (o peleas si hay otro). Cuesta ⚡3 y 1 acción.',en:'Click one and done: you colonize (or fight if someone is there). Costs ⚡3 and 1 action.'})}</div></div>
-  <div><span class="n">3</span><div><b>${L({es:'Tienes 3 acciones por turno (🎯 arriba).',en:'You have 3 actions per turn (🎯 top bar).'})}</b><br>${L({es:'Cuando se acaben, pulsa el botón rojo <b>Terminar turno</b>. Al hacer clic en un hex aparece un menú con lo que puedes hacer ahí: Biofilm, Vesículas o <b>Preparar</b> (crear hasta 3 casillas de agua con tu química, una vez por turno).',en:'When they run out, press the red <b>End turn</b> button. Clicking a hex opens a menu with what you can do there: Biofilm, Vesicles or <b>Prepare</b> (create up to 3 water tiles with your chemistry, once per turn).'})}</div></div></div>
+  <div><span class="n">3</span><div><b>${L({es:'Tienes 3 acciones por turno (🎯 arriba).',en:'You have 3 actions per turn (🎯 top bar).'})}</b><br>${L({es:'Cuando se acaben, el turno pasa solo (o pulsa <b>Terminar turno</b> antes si quieres). Al hacer clic en un hex aparece un menú con lo que puedes hacer ahí: Biofilm, Vesículas o <b>Preparar</b> (crear hasta 3 casillas de agua con tu química, una vez por turno).',en:'When they run out the turn ends by itself (or press <b>End turn</b> earlier). Clicking a hex opens a menu with what you can do there: Biofilm, Vesicles or <b>Prepare</b> (create up to 3 water tiles with your chemistry, once per turn).'})}</div></div></div>
   <button id="tutOk" class="go">${L({es:'¡Entendido, a jugar!',en:'Got it, let’s play!'})}</button>`);$('#tutOk').onclick=closeModal;}
 function startFromState(s){st=s;mode=null;Rules.applyMade(s,map);hidePopup();if(!$('#adviser').innerHTML)$('#adviser').style.display='none';paused=false;$('#title').classList.remove('open');$('#game').classList.add('open');resize();map.sel=-1;timerLeft=st.timer||0;Audio_.resume();Audio_.setMusic({faction:st.human,era:st.era||0,war:humanAtWar()});refresh();selectHex(COPAHUE.siteHex[FBY[st.human].home]);if(st.over)showGameOver();}
 // ---------- HUD ----------
@@ -54,6 +55,7 @@ function refresh(){if(!st)return;const P=st.factions[st.human],F=FBY[st.human];
   renderLog();if(map.sel>=0)renderHex(map.sel);
   const era=Rules?st.era:0;Audio_.setMusic({era:st.era||0,war:humanAtWar()});
   $('#btnPause').style.display=st.mode==='campaign'?'':'none';$('#btnEnd').classList.toggle('pulse',P.actions<=0&&!st.over);
+  if(P.actions<=0&&!st.over&&!autoEndTimer&&!mode){autoEndTimer=setTimeout(()=>{autoEndTimer=null;if(st&&!st.over&&st.factions[st.human].actions<=0&&!$('#modal').classList.contains('open'))endTurn();else refresh();},1400);toast(L({es:'⏳ Sin acciones: pasando el turno…',en:'⏳ No actions left: ending turn…'}),1300);}
   $('#hudFaction').innerHTML=`<b>${L({es:'TÚ',en:'YOU'})}:</b> <span class="dot" style="background:${F.color}"></span>${F.icon} ${esc(L(F.name))}`;}
 function humanAtWar(){return Object.keys(st.wars).some(k=>k.split('|').indexOf(st.human)>=0);}
 function renderLog(){const box=$('#log');const items=st.log.slice(-6).reverse();box.innerHTML=items.map(e=>`<div class="le">${logText(e)}</div>`).join('');}
@@ -194,7 +196,7 @@ function closeModal(){$('#modal').classList.remove('open');}
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
 // ---------- turn ----------
 $('#btnEnd').onclick=()=>endTurn();
-function endTurn(){if(!st||st.over)return;cancelMode();Audio_.sfx('turn');pendingMsgs=[];
+function endTurn(){if(!st||st.over)return;if(autoEndTimer){clearTimeout(autoEndTimer);autoEndTimer=null;}cancelMode();Audio_.sfx('turn');pendingMsgs=[];
   const say=(f,kind,d)=>pendingMsgs.push({f,kind,d});
   for(const F of FACTIONS){if(F.id===st.human)continue;AI.takeTurn(F.id,st,map,say);}
   const ev=Rules.worldTurn(st,map);
@@ -236,6 +238,6 @@ function onKey(e){if(!st||$('#title').classList.contains('open'))return;const ta
 // ---------- lang ----------
 function applyLang(){$$('[data-i]').forEach(el=>el.textContent=T(el.dataset.i));document.documentElement.lang=LANG;$('#langBtn').textContent=T('lang');if(!st)renderUsers();}
 $('#langBtn').onclick=()=>{setLang(LANG==='es'?'en':'es');applyLang();};
-window.COLON={get st(){return st;},get map(){return map;},endTurn,startNew};
+window.COLON={get st(){return st;},get map(){return map;},endTurn,startNew,refresh};
 document.addEventListener('DOMContentLoaded',boot);
 })();
