@@ -8,8 +8,8 @@ const ACTIONS_PER_TURN=3;
 const KEY=(a,b)=>a<b?a+'|'+b:b+'|'+a;
 
 function newState(map,opts){
-  const st={mode:opts.mode,turn:1,maxTurns:opts.mode==='quick'?25:120,human:opts.faction,user:opts.user,created:Date.now(),
-    board:opts.board||'m',hexes:new Array(map.d.hexes.length).fill(null),factions:{},relations:{},alliances:{},wars:{},events:[],activeMods:[],log:[],msgs:[],winner:null,over:false,era:0,phase:'human',timer:opts.mode==='quick'?75:0};
+  const st={mode:opts.mode,easy:opts.mode==='learn',turn:1,maxTurns:opts.mode==='learn'?15:opts.mode==='quick'?25:120,human:opts.faction,user:opts.user,created:Date.now(),
+    board:opts.board||'m',hexes:new Array(map.d.hexes.length).fill(null),factions:{},relations:{},alliances:{},wars:{},events:[],activeMods:[],log:[],msgs:[],winner:null,over:false,era:0,phase:'human',timer:0};
   for(const i of map.playable){const h=map.d.hexes[i];st.hexes[i]={owner:null,pop:0,biofilm:0,eff:{ph:h.ph,T:h.T,fe:h.fe,so4:h.so4,o2:h.o2,ec:h.ec,as:h.as||0},shield:0,eDNA:null,eDNAttl:0};}
   for(const f of FACTIONS){st.factions[f.id]={res:{energy:10,carbon:8,nutrients:6},genes:f.genes.slice(),acquired:0,cdg:f.personality.expand>.65?'low':'high',cdgPending:null,alive:true,actions:6,score:0,allySince:{}};
     const home=map.d.siteHex[f.home];const hs=st.hexes[home];hs.owner=f.id;hs.pop=6;hs.biofilm=f.bonus.biofilm?1:0;
@@ -176,7 +176,7 @@ function worldTurn(st,map){
   return ev;
 }
 function eraOf(st){const P=st.factions[st.human];const n=P.genes.length;const allies=Object.keys(st.alliances).filter(k=>k.split('|').indexOf(st.human)>=0).length;if(allies>=2)return 3;if(n>=9)return 2;if(n>=6)return 1;return 0;}
-function checkVictory(st,map){if(st.over)return;const total=map.playable.length;const q=st.mode==='quick';const domK=q?.4:.6,genN=8,allyT=q?8:10;
+function checkVictory(st,map){if(st.over)return;const total=map.playable.length;const q=st.mode!=='campaign';const domK=q?.4:.6,genN=8,allyT=q?8:10;
   for(const F of FACTIONS){const f=F.id;const terr=territory(st,f);
     if(terr>=total*domK){st.over=true;st.winner={f,kind:'domination'};return;}
     if((st.factions[f].acquired||0)>=genN){st.over=true;st.winner={f,kind:'genetic'};return;}

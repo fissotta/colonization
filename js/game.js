@@ -1,7 +1,7 @@
 // COLONIZATION — interfaz, flujo de turnos, modos de juego
 'use strict';
 (function(){
-const VERSION='v2.3 · 2026-10-20 14:05';
+const VERSION='v2.4 · 2026-10-21 11:53';
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let autoEndTimer=null;
@@ -23,7 +23,9 @@ function boot(){useBoard('m');document.querySelectorAll('.ver').forEach(e=>e.tex
 const drag={on:false,x:0,y:0,moved:false};
 function pt(e){const r=canvas.getBoundingClientRect();return [(e.clientX-r.left)*devicePixelRatio,(e.clientY-r.top)*devicePixelRatio];}
 function loop(t){const dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;if(st&&!paused&&!st.over&&st.mode==='quick'&&timerLeft>0&&!$('#modal').classList.contains('open')){timerLeft-=dt;$('#timer').textContent=Math.ceil(timerLeft)+'s';$('#timer').classList.toggle('warn',timerLeft<15);if(timerLeft<=0){toast(T('autoEnd'));endTurn();}}
-  if(st){st.targets=mode?(mode.targets||null):(st.over?null:Object.keys(autoTargets()).map(Number));st.me=st.human;st.prep=mode&&mode.kind==='prepare'?{cands:Rules.prepareCandidates(st.human,st,map,mode.picked),picked:mode.picked}:null;}map.draw(st,dt);requestAnimationFrame(loop);}
+  if(st){st.targets=mode?(mode.targets||null):(st.over?null:Object.keys(autoTargets()).map(Number));st.me=st.human;st.prep=mode&&mode.kind==='prepare'?{cands:Rules.prepareCandidates(st.human,st,map,mode.picked),picked:mode.picked}:null;}map.draw(st,dt);if(st)FX.draw(map.ctx,map,dt,canvas.width,canvas.height);punch(dt);requestAnimationFrame(loop);}
+let punchT=0,punchI=-1;function punch(dt){if(punchT<=0)return;punchT-=dt;}
+function zoomTo(i){const [x,y]=map.center(i);const W=canvas.width,H=canvas.height;const dx=W/2-x,dy=H/2-y;const steps=18;let k=0;const ox0=map.ox,oy0=map.oy;const tick=()=>{k++;const e=k/steps;const ee=e<.5?2*e*e:1-Math.pow(-2*e+2,2)/2;map.ox=ox0+dx*.35*ee;map.oy=oy0+dy*.35*ee;if(k<steps)requestAnimationFrame(tick);};tick();}
 // hexes a los que puedes ir ahora mismo: {target: mejorOrigen}
 function autoTargets(){const me=st.human,P=st.factions[me];const out={};if(P.actions<=0||P.res.energy<3)return out;
   for(const i of map.playable){const s=st.hexes[i];if(s.owner!==me||s.pop<3)continue;for(const j of Rules.colonizeTargets(me,st,i,map)){const t=st.hexes[j];const p=t.owner&&t.owner!==me?Rules.combat(me,st,i,j,map):Rules.colonizeOdds(me,st,i,j,map);if(!out[j]||p>out[j].p)out[j]={from:i,p};}}
@@ -32,14 +34,14 @@ function autoTargets(){const me=st.human,P=st.factions[me];const out={};if(P.act
 function showTitle(){$('#title').classList.add('open');$('#game').classList.remove('open');st=null;renderUsers();}
 function renderUsers(){user=user||Save.lastUser();const us=Save.users();const box=$('#users');box.innerHTML='';us.forEach(u=>{const b=document.createElement('button');b.className='chip'+(u===user?' sel':'');b.textContent=u;b.onclick=()=>{user=u;Save.addUser(u);renderUsers();};box.appendChild(b);});
   const inp=document.createElement('input');inp.placeholder=T('newUser');inp.maxLength=24;inp.onkeydown=e=>{if(e.key==='Enter'){const n=Save.addUser(inp.value);if(n){user=n;renderUsers();}}};box.appendChild(inp);
-  const saves=user?Save.list(user):[];const sv=$('#saves');sv.innerHTML='';saves.forEach(s=>{if(!s.t)return;const d=new Date(s.t);const b=document.createElement('button');b.className='big';b.innerHTML=`<b>${T('continue')} · ${s.mode==='quick'?T('quick'):T('campaign')}</b><small>${esc(L(FBY[s.faction].name))} · ${T('turn')} ${s.turn} · ${d.toLocaleDateString()} ${d.toLocaleTimeString().slice(0,5)}${s.over?' · '+T('gameOver'):''}</small>`;b.onclick=()=>{const l=Save.load(user,s.mode);if(l)startFromState(l.state);};sv.appendChild(b);});
-  $('#btnQuick').disabled=$('#btnCampaign').disabled=!user;$('#whoPlays').textContent=user?user:'—';}
-$('#btnQuick').onclick=()=>chooseFaction('quick');$('#btnCampaign').onclick=()=>chooseFaction('campaign');
+  const saves=user?Save.list(user).concat([(()=>{const l=Save.load(user,'learn');return {mode:'learn',t:l?l.t:null,turn:l?l.state.turn:null,faction:l?l.state.human:null,over:l?l.state.over:false};})()]):[];const sv=$('#saves');sv.innerHTML='';saves.forEach(s=>{if(!s.t)return;const d=new Date(s.t);const b=document.createElement('button');b.className='big';b.innerHTML=`<b>${T('continue')} · ${T(s.mode)}</b><small>${esc(L(FBY[s.faction].name))} · ${T('turn')} ${s.turn} · ${d.toLocaleDateString()} ${d.toLocaleTimeString().slice(0,5)}${s.over?' · '+T('gameOver'):''}</small>`;b.onclick=()=>{const l=Save.load(user,s.mode);if(l)startFromState(l.state);};sv.appendChild(b);});
+  $('#btnQuick').disabled=$('#btnCampaign').disabled=$('#btnLearn').disabled=!user;$('#whoPlays').textContent=user?user:'—';}
+$('#btnLearn').onclick=()=>chooseFaction('learn');$('#btnQuick').onclick=()=>chooseFaction('quick');$('#btnCampaign').onclick=()=>chooseFaction('campaign');
 function chooseFaction(m){const box=$('#factions');box.innerHTML='';FACTIONS.forEach(f=>{const c=document.createElement('div');c.className='fcard';c.style.setProperty('--fc',f.color);
     c.innerHTML=`<div class="ficon">${f.icon}</div><div class="fname">${esc(L(f.name))}</div><div class="fshort">${esc(L(f.short))}</div><div class="fchips"><span>pH ${f.phOpt}</span><span>${f.tOpt} °C</span><span>${f.metab==='auto'?'🌋':f.metab==='hetero'?'🍽':'🔀'}</span></div><div class="ftax">${esc(f.taxon)}</div>`;
-    c.onclick=()=>{Audio_.resume();Audio_.sfx('click');startNew(m,f.id);};box.appendChild(c);});$('#pick').classList.add('open');$('#pickMode').textContent=m==='quick'?T('quick'):T('campaign');}
+    c.onclick=()=>{Audio_.resume();Audio_.sfx('click');startNew(m,f.id);};box.appendChild(c);});$('#pick').classList.add('open');$('#pickMode').textContent=T(m);}
 $('#pickClose').onclick=()=>$('#pick').classList.remove('open');
-function startNew(m,fid){$('#pick').classList.remove('open');useBoard(m==='quick'?'m':'l');const s=Rules.newState(map,{mode:m,faction:fid,user,board:m==='quick'?'m':'l'});Rules.effective(s,map);startFromState(s);const F=FBY[fid];adviser(L({es:`${F.icon} Tú eres <b>${esc(L(F.name))}</b>. Tu casa es ${F.home} (bandera). Haz clic en un hex que brilla para colonizarlo.`,en:`${F.icon} You are <b>${esc(L(F.name))}</b>. Home is ${F.home} (flag). Click a glowing hex to colonize it.`}));openTutorial();}
+function startNew(m,fid){$('#pick').classList.remove('open');const bk=m==='learn'?'s':m==='quick'?'m':'l';useBoard(bk);const s=Rules.newState(map,{mode:m,faction:fid,user,board:bk});Rules.effective(s,map);startFromState(s);const F=FBY[fid];adviser(L({es:`${F.icon} Tú eres <b>${esc(L(F.name))}</b>. Tu casa es ${F.home} (bandera). Haz clic en un hex que brilla para colonizarlo.`,en:`${F.icon} You are <b>${esc(L(F.name))}</b>. Home is ${F.home} (flag). Click a glowing hex to colonize it.`}));openTutorial();}
 function openTutorial(pause){const F=FBY[st.human];openModal(`${pause?`<div class="pausebig">⏸ ${L({es:'PAUSA',en:'PAUSED'})}</div>`:''}<h3>${F.icon} ${L({es:'Cómo se juega',en:'How to play'})}</h3><div class="tut">
   <div><span class="n">🚩</span><div>${L({es:`Eres <b style="color:${F.color}">${esc(L(F.name))}</b>. Tus hexes tienen tu color; la bandera <b>TÚ</b> es tu casa.`,en:`You are <b style="color:${F.color}">${esc(L(F.name))}</b>. Your hexes carry your colour; the <b>YOU</b> flag is home.`})}</div></div>
   <div><span class="n">7</span><div>${L({es:'El <b>número</b> en cada hex es la <b>población</b> que vive ahí (máx. 10). Con <b>3 o más</b> puedes saltar a un hex vecino.',en:'The <b>number</b> in each hex is the <b>population</b> living there (max 10). With <b>3 or more</b> you can jump to a neighbouring hex.'})}</div></div>
@@ -122,7 +124,7 @@ function hidePopup(){$('#popup').style.display='none';}
 function startPrepare(first){mode={kind:'prepare',picked:[],targets:null};hidePopup();const bar=$('#prepbar');bar.style.display='flex';updatePrepBar();if(first!==undefined)pickPrepare(first);toast(L({es:'Haz clic en las casillas azules 💧 (hasta 3) y confirma.',en:'Click the blue 💧 tiles (up to 3) and confirm.'}),4000);}
 function pickPrepare(i){const c=Rules.prepareCandidates(st.human,st,map,mode.picked);const k=mode.picked.indexOf(i);if(k>=0){mode.picked.splice(k,1);}else if(c.indexOf(i)>=0&&mode.picked.length<3){if((mode.picked.length+1)*3>st.factions[st.human].res.carbon){toast('🟢 '+T('notEnough'));return;}mode.picked.push(i);}else{Audio_.sfx('fail');}updatePrepBar();}
 function updatePrepBar(){const n=mode?mode.picked.length:0;const ok=n*3<=st.factions[st.human].res.carbon;$('#prepCount').innerHTML=`${n}/3 · <span style="color:${ok?'#9f9':'#f88'}">🟢${n*3}</span>`;$('#prepOk').disabled=n===0||!ok;}
-$('#prepOk').onclick=()=>{if(!mode||mode.kind!=='prepare')return;const r=Rules.doPrepare(st.human,st,mode.picked,map);if(r.ok){Audio_.sfx('biofilm');for(const i of mode.picked)map.spawn(i,'gift',8);toast(L({es:'💧 Agua preparada con tu química. ¡Ahora colonízala antes que otros!',en:'💧 Water prepared with your chemistry. Colonize it before others do!'}),3500);}else toast(T(r.msg));cancelMode();refresh();};
+$('#prepOk').onclick=()=>{if(!mode||mode.kind!=='prepare')return;const r=Rules.doPrepare(st.human,st,mode.picked,map);if(r.ok){Audio_.sfx('biofilm');for(const i of mode.picked){map.spawn(i,'gift',8);}FX.play('prepare',mode.picked[0],{color:FBY[st.human].color,flag:Rules.has(st,st.human,'flagellum'),water:HexMap.waterColor(st.hexes[mode.picked[0]].eff),text:'💧 '+L({es:'Agua preparada',en:'Water prepared'})});toast(L({es:'💧 Agua preparada con tu química. ¡Ahora colonízala antes que otros!',en:'💧 Water prepared with your chemistry. Colonize it before others do!'}),3500);}else toast(T(r.msg));cancelMode();refresh();};
 $('#prepCancel').onclick=()=>{cancelMode();};
 function selectHex(i){map.sel=i;renderHex(i);}
 function renderHex(i){const h=COPAHUE.hexes[i],s=st.hexes[i];if(!s){$('#hexpanel').innerHTML=`<div class="muted">${T('selectHex')}</div>`;return;}
@@ -150,15 +152,16 @@ function genusColor(g){const m={Acidithiobacillus:'#f2c230',Leptospirillum:'#c84
 function hexAction(act,i){const me=st.human;
   if(act==='go'){const at=autoTargets()[i];if(at){mode={kind:'colonize',from:at.from,targets:[i]};execTarget(i);}return;}
   if(act==='colonize'){const tg=Rules.colonizeTargets(me,st,i,map);if(!tg.length){toast(T('tooFar'));return;}mode={kind:'colonize',from:i,targets:tg};toast(L({es:'Elige el hex destino (brillante). Esc cancela.',en:'Pick a target hex (glowing). Esc cancels.'}),4000);}
-  if(act==='biofilm'){const r=Rules.doBiofilm(me,st,i);if(r.ok){Audio_.sfx('biofilm');map.spawn(i,'bio',10);}else toast(T(r.msg));refresh();}
+  if(act==='biofilm'){const r=Rules.doBiofilm(me,st,i);if(r.ok){Audio_.sfx('biofilm');map.spawn(i,'bio',10);FX.play('biofilm',i,{color:FBY[me].color,level:st.hexes[i].biofilm,water:HexMap.waterColor(st.hexes[i].eff),text:'🧱 '+T('biofilm')+' '+st.hexes[i].biofilm});}else toast(T(r.msg));refresh();}
   if(act==='omv'){openOMV(i);}}
 function execTarget(j){const me=st.human;
   if(mode.kind==='colonize'){const from=mode.from;const wasOwned=st.hexes[j].owner;const p=wasOwned&&wasOwned!==me?Rules.combat(me,st,from,j,map):Rules.colonizeOdds(me,st,from,j,map);const r=Rules.doColonize(me,st,from,j,map);
     if(!r.ok){toast(T(r.msg));cancelMode();return;}
-    if(wasOwned){Audio_.sfx('battle');map.spawn(j,'battle',12);toast((r.won?'⚔️ '+T('won'):'🛡 '+T('lost'))+` (${(p*100)|0} %)`);}
-    else{if(r.won){Audio_.sfx('colonize');map.spawn(j,'colonize',10);toast('🧫 '+T('success')+` (${(p*100)|0} %)`);}else{Audio_.sfx('fail');toast(T('fail')+` (${(p*100)|0} %)`);}}
+    const F=FBY[me];const wc=HexMap.waterColor(st.hexes[j].eff);
+    if(wasOwned){Audio_.sfx('battle');map.spawn(j,'battle',12);FX.play('attack',j,{color:F.color,color2:FBY[wasOwned].color,flag:Rules.has(st,me,'flagellum'),won:r.won,water:wc,text:r.won?'⚔️ '+T('won'):'🛡 '+T('lost'),textColor:r.won?'#9f9':'#f88'});}
+    else{if(r.won){Audio_.sfx('colonize');map.spawn(j,'colonize',10);FX.play('colonize',j,{color:F.color,flag:Rules.has(st,me,'flagellum'),water:wc,text:'🧫 '+T('success'),textColor:'#9f9'});}else{Audio_.sfx('fail');FX.play('fail',j,{color:F.color,water:wc,text:T('fail')+` (${(p*100)|0} %)`,textColor:'#f88'});}}
     cancelMode();selectHex(j);refresh();return;}
-  if(mode.kind==='omv'){const r=Rules.doOMV(me,st,mode.from,j,mode.type,map,mode.gene);if(!r.ok)toast(T(r.msg));else{Audio_.sfx('omv');map.spawn(j,mode.type==='toxin'?'toxin':mode.type==='dna'?'dna':'gift',10);}cancelMode();refresh();}}
+  if(mode.kind==='omv'){const r=Rules.doOMV(me,st,mode.from,j,mode.type,map,mode.gene);if(!r.ok)toast(T(r.msg));else{Audio_.sfx('omv');map.spawn(j,mode.type==='toxin'?'toxin':mode.type==='dna'?'dna':'gift',10);FX.play('omv',j,{color:FBY[me].color,type:mode.type,water:HexMap.waterColor(st.hexes[j].eff),text:'💧 '+T('omv')});}cancelMode();refresh();}}
 function cancelMode(){mode=null;$('#prepbar').style.display='none';hidePopup();}
 function openOMV(i){const me=st.human;const tg=Rules.omvTargets(me,st,i,map);const P=st.factions[me];
   let html=`<h3>💧 ${T('sendOMV')}</h3><p class="muted">${esc(L(CONCEPTS.find(c=>c.id==='omv').text))}</p><div class="col">`;
@@ -235,6 +238,7 @@ function showMsgs(){if(!pendingMsgs.length)return;const me=st.human;const box=$(
     d.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const k=Rules.KEY(me,m.f);if(b.dataset.a==='ally'){st.alliances[k]=st.turn;delete st.wars[k];Rules.addRel(st,me,m.f,20);Rules.log(st,'ally',{f:m.f,d:me});Audio_.sfx('diplo');}if(b.dataset.a==='peace'){delete st.wars[k];st.relations[k]=Math.max(st.relations[k],-20);Rules.log(st,'peace',{f:m.f,d:me});Audio_.sfx('diplo');}if(b.dataset.a==='no')Rules.addRel(st,me,m.f,-5);d.remove();refresh();});
     setTimeout(()=>{if(d.parentNode&&!btns)d.remove();},9000);});}
 function tips(){const me=st.human,P=st.factions[me],F=FBY[me];const t=[];
+  if(st.easy&&st.turn<=4)t.push([L({es:'Modo Aprender: los rivales no atacan. Prueba a colonizar los hexes con +, y luego abre un hex tuyo para ver Biofilm, Vesículas y Preparar agua.',en:'Learn mode: rivals do not attack. Try colonizing the + hexes, then open one of your hexes to see Biofilm, Vesicles and Prepare water.'}),L({es:'Los hexes de agua ácida y caliente le gustan a unas comunidades y a otras no: mira la barra de Aptitud antes de ir.',en:'Hot acid water suits some communities and not others: check the Fitness bar before you go.'}),L({es:'Cada 4–5 turnos pasa algo en el volcán (erupción, deshielo, fagos…). ¡Lee el aviso!',en:'Every 4–5 turns something happens at the volcano (eruption, melt, phages…). Read the notice!'})][st.turn-2]||'');
   if(P.res.energy<4)t.push(L({es:'Energía baja: coloniza hexes con azufre o hierro (vertientes, cráter) o, si eres heterótrofo, junto a autótrofos.',en:'Low energy: colonize sulfur/iron hexes (springs, crater) or, if heterotroph, next to autotrophs.'}));
   if(P.cdg==='high'&&Rules.territory(st,me)<4)t.push(L({es:'Con pocos hexes conviene c-di-GMP BAJO para expandirte; súbelo cuando quieras amurallar con biofilm.',en:'With few hexes, LOW c-di-GMP helps you expand; raise it when you want to wall up with biofilm.'}));
   if(F.auxotroph&&!Object.keys(st.alliances).some(k=>k.indexOf(me)>=0))t.push(L({es:'I. copahuensis no fabrica serina ni histidina: una sintrofia con los Recicladores o la República te dará más carbono.',en:'I. copahuensis cannot make serine or histidine: syntrophy with the Recyclers or the Republic gives more carbon.'}));

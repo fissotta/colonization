@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>COLONIZATION v2.3</title>
+<title>COLONIZATION v2.4</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon points='50,5 93,27 93,73 50,95 7,73 7,27' fill='%23c4461a'/><circle cx='50' cy='50' r='18' fill='%23f2c230'/></svg>">
 <style>
 :root{--bg:#0b0f14;--panel:#121a22;--panel2:#18232e;--line:#2a3a48;--txt:#e8eef4;--muted:#93a4b4;--acc:#f2c230;--rust:#c4461a;--teal:#2fb9b1}
@@ -22,7 +22,7 @@ input,select{font:inherit;background:#0f161d;color:var(--txt);border:1px solid v
 .tbox{position:relative;background:rgba(10,14,18,.75);border:1px solid #4a2a1a;border-radius:14px;padding:18px 22px;width:min(720px,94vw);backdrop-filter:blur(4px)}
 .tbox h3{margin:0 0 8px;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
 #users{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}.chip{border-radius:20px}.chip.sel{background:var(--acc);color:#000;border-color:var(--acc)}
-.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}button.big{text-align:left;padding:12px 14px;display:flex;flex-direction:column;gap:3px}button.big b{font-size:16px}button.big small{color:var(--muted)}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}.modes.three{grid-template-columns:1fr 1fr 1fr}.mi{font-size:30px}button.big{text-align:left;padding:12px 14px;display:flex;flex-direction:column;gap:3px}button.big b{font-size:16px}button.big small{color:var(--muted)}
 #saves{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 #langBtn{position:absolute;top:14px;right:16px;z-index:21}
 .mel{position:relative;display:block;margin:22px auto 0;background:rgba(255,255,255,.92);border-radius:14px;padding:10px 18px;width:min(520px,90vw);box-shadow:0 6px 30px rgba(0,0,0,.45)}.mel img{display:block;width:100%;height:auto}
@@ -81,11 +81,11 @@ button.go{width:100%;font-size:17px;font-weight:700;padding:12px;background:#1f6
   <div class="tbox">
     <h3 data-i="users">Usuarios en este equipo</h3><div id="users"></div>
     <h3><span data-i="player">Jugador/a</span>: <span id="whoPlays">—</span></h3>
-    <div class="modes"><button class="big" id="btnQuick"><b data-i="quick">Partida rápida</b><small data-i="quickDesc">25 turnos · ~30 min · reloj por turno</small></button><button class="big" id="btnCampaign"><b data-i="campaign">Campaña</b><small data-i="campaignDesc">120 turnos · pausa y guardado · sin reloj</small></button></div>
+    <div class="modes three"><button class="big" id="btnLearn"><span class="mi">🎓</span><b data-i="learn">Aprender</b><small data-i="learnDesc">Mapa chico · 15 turnos · rivales tranquilos · ideal para empezar</small></button><button class="big" id="btnQuick"><span class="mi">⚡</span><b data-i="quick">Rápida</b><small data-i="quickDesc">Mapa mediano · 25 turnos · sin reloj</small></button><button class="big" id="btnCampaign"><span class="mi">🏔️</span><b data-i="campaign">Campaña</b><small data-i="campaignDesc">Mapa grande · 120 turnos · se guarda sola</small></button></div>
     <div id="saves"></div>
   </div>
   <a class="mel" href="https://cienciavida.org" target="_blank" rel="noopener" title="Microbial Ecophysiology Lab — Fundación Ciencia &amp; Vida"><img src="img/logoMEL.svg" alt="Microbial Ecophysiology Lab"></a>
-  <div class="credits"><b class="ver" style="color:#ffe28a;font-size:14px">v2.3 · 2026-10-20 14:05</b><br>Datos reales: campañas Copahue 2019–2020 · Arisan et al. 2024 · Moya‑Beltrán et al. 2021</div>
+  <div class="credits"><b class="ver" style="color:#ffe28a;font-size:14px">v2.4 · 2026-10-21 11:53</b><br>Datos reales: campañas Copahue 2019–2020 · Arisan et al. 2024 · Moya‑Beltrán et al. 2021</div>
 </div>
 <div id="pick"><button id="pickClose">✕</button><h2><span data-i="chooseFaction">Elige tu comunidad</span> · <span id="pickMode"></span></h2><div id="factions"></div></div>
 <div id="game">
@@ -103,6 +103,7 @@ button.go{width:100%;font-size:17px;font-weight:700;padding:12px;background:#1f6
 <script src="js/factions.js"></script>
 <script src="js/pedia.js"></script>
 <script src="js/map.js"></script>
+<script src="js/fx.js"></script>
 <script src="js/rules.js"></script>
 <script src="js/ai.js"></script>
 <script src="js/audio.js"></script>

@@ -24,9 +24,9 @@ function takeTurn(f,st,map,say){
     for(const i of map.playable){const s=st.hexes[i];if(s.owner!==f||s.pop<3.5)continue;
       for(const j of Rules.colonizeTargets(f,st,i,map)){const t=st.hexes[j];const h=map.d.hexes[j];let v;
         if(!t.owner){v=Rules.colonizeOdds(f,st,i,j,map)*(h.site?1.25:1)*(h.t==='lake'?1.1:1);}
-        else{if(Rules.isAllied(st,f,t.owner)||st.turn<6)continue;const p=Rules.combat(f,st,i,j,map);const hostile=Rules.atWar(st,f,t.owner)||Rules.rel(st,f,t.owner)<-15;v=(p>.62&&(hostile||R()<pr.aggr*.5))?p*.9*pr.aggr+.2:0;}
+        else{if(Rules.isAllied(st,f,t.owner)||st.turn<6||st.easy)continue;const p=Rules.combat(f,st,i,j,map);const hostile=Rules.atWar(st,f,t.owner)||Rules.rel(st,f,t.owner)<-15;v=(p>.62&&(hostile||R()<pr.aggr*.5))?p*.9*pr.aggr+.2:0;}
         if(v>.3&&(!best||v>best.v))best={v,i,j};}}
-    if(best&&P.res.energy>=3){const r=Rules.doColonize(f,st,best.i,best.j,map);if(r.ok){did=true;if(say&&st.hexes[best.j].owner===f&&R()<.25)say(f,'colonize',{to:best.j});if(say&&r.won===false&&R()<.2)say(f,'failed',{to:best.j});}}
+    if(best&&P.res.energy>=3&&!(st.easy&&R()<.5)){const r=Rules.doColonize(f,st,best.i,best.j,map);if(r.ok){did=true;if(say&&st.hexes[best.j].owner===f&&R()<.25)say(f,'colonize',{to:best.j});if(say&&r.won===false&&R()<.2)say(f,'failed',{to:best.j});}}
     if(did)continue;
     // 2b. preparar agua (terraformar) de vez en cuando
     if(R()<.2*pr.expand&&Rules.canPrepare(f,st)==='ok'&&P.res.carbon>=9){const c=Rules.prepareCandidates(f,st,map);if(c.length){const pick=c.sort(()=>R()-.5).slice(0,1+Math.floor(R()*2));const list=[];for(const i of pick){if(Rules.prepareCandidates(f,st,map,list).indexOf(i)>=0)list.push(i);}if(list.length){Rules.doPrepare(f,st,list,map);did=true;}}}
@@ -37,7 +37,7 @@ function takeTurn(f,st,map,say){
     if(did)continue;
     // 4. OMV
     if(P.res.carbon>=6&&R()<.6){let sent=false;for(const i of map.playable){const s=st.hexes[i];if(s.owner!==f)continue;for(const j of Rules.omvTargets(f,st,i,map)){const t=st.hexes[j];if(!t.owner||t.owner===f)continue;
-          if(Rules.atWar(st,f,t.owner)&&R()<pr.aggr){Rules.doOMV(f,st,i,j,'toxin',map);if(say&&R()<.4)say(f,'toxin',{d:t.owner,to:j});sent=true;break;}
+          if(Rules.atWar(st,f,t.owner)&&R()<pr.aggr&&!st.easy){Rules.doOMV(f,st,i,j,'toxin',map);if(say&&R()<.4)say(f,'toxin',{d:t.owner,to:j});sent=true;break;}
           if(Rules.isAllied(st,f,t.owner)&&R()<pr.diplo*.4){Rules.doOMV(f,st,i,j,'enzyme',map);sent=true;break;}}
         if(sent)break;}
       if(sent){did=true;continue;}}
@@ -47,7 +47,7 @@ function takeTurn(f,st,map,say){
           if(o===st.human){if(say)say(f,'proposeAlly',{});break;}
           else if(Rules.aiAccepts(st,o,f,'syntrophy')){st.alliances[k]=st.turn;Rules.addRel(st,f,o,20);Rules.log(st,'ally',{f,d:o});break;}}
         if(st.wars[k]&&Rules.strength(st,f)<Rules.strength(st,o)*.8&&R()<.5){if(o===st.human){if(say)say(f,'proposePeace',{});}else if(Rules.aiAccepts(st,o,f,'peace')){delete st.wars[k];st.relations[k]=Math.max(st.relations[k],-20);Rules.log(st,'peace',{f,d:o});}break;}
-        if(!st.wars[k]&&pr.aggr>.55&&Rules.rel(st,f,o)<-20&&Rules.strength(st,f)>Rules.strength(st,o)*1.3&&R()<.3){Rules.propose(st,f,o,'war',map);if(say&&o===st.human)say(f,'war',{});break;}}}
+        if(!st.easy&&!st.wars[k]&&pr.aggr>.55&&Rules.rel(st,f,o)<-20&&Rules.strength(st,f)>Rules.strength(st,o)*1.3&&R()<.3){Rules.propose(st,f,o,'war',map);if(say&&o===st.human)say(f,'war',{});break;}}}
     break;
   }
 }

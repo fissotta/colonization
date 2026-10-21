@@ -2,7 +2,7 @@
 const I18N={
  es:{
   title:'COLONIZATION',subtitle:'Guerra por el Agrio',tagline:'Las comunidades microbianas de Copahue luchan por el río',
-  play:'Jugar',quick:'Partida rápida',quickDesc:'25 turnos · ~30 min · reloj por turno',campaign:'Campaña',campaignDesc:'120 turnos · pausa y guardado · sin reloj',
+  play:'Jugar',learn:'Aprender',learnDesc:'Mapa chico · 15 turnos · rivales tranquilos · ideal para empezar',quick:'Rápida',quickDesc:'Mapa mediano · 25 turnos · sin reloj',campaign:'Campaña',campaignDesc:'Mapa grande · 120 turnos · se guarda sola',
   continue:'Continuar partida',newGame:'Nueva partida',player:'Jugador/a',chooseFaction:'Elige tu comunidad',start:'¡A colonizar!',
   turn:'Turno',endTurn:'Terminar turno',actions:'Acciones',energy:'Energía',carbon:'Carbono',nutrients:'Nutrientes',pop:'Población',
   colonize:'Colonizar',attack:'Competir',biofilm:'Biofilm',omv:'Vesículas',genes:'Poderes',diplomacy:'Alianzas',pedia:'Pedia',menu:'Menú',
@@ -24,7 +24,7 @@ const I18N={
  },
  en:{
   title:'COLONIZATION',subtitle:'War for the Agrio',tagline:'Copahue’s microbial communities fight for the river',
-  play:'Play',quick:'Quick game',quickDesc:'25 turns · ~30 min · turn timer',campaign:'Campaign',campaignDesc:'120 turns · pause & save · no timer',
+  play:'Play',learn:'Learn',learnDesc:'Small map · 15 turns · gentle rivals · best to start',quick:'Quick',quickDesc:'Medium map · 25 turns · no timer',campaign:'Campaign',campaignDesc:'Large map · 120 turns · autosaves',
   continue:'Continue game',newGame:'New game',player:'Player',chooseFaction:'Choose your community',start:'Colonize!',
   turn:'Turn',endTurn:'End turn',actions:'Actions',energy:'Energy',carbon:'Carbon',nutrients:'Nutrients',pop:'Population',
   colonize:'Colonize',attack:'Compete',biofilm:'Biofilm',omv:'Vesicles',genes:'Powers',diplomacy:'Alliances',pedia:'Pedia',menu:'Menu',

@@ -12,10 +12,10 @@ externa, transferencia horizontal de genes, ICE, quorum sensing, fagos/CRISPR, s
 - Funciona offline: todo es HTML + JS puro, sin dependencias.
 
 ## Modos
-- **Partida rápida**: 25 turnos, reloj de 75 s por turno (≈ 30 min). Victoria por dominación (40 % del río),
-  genética (14 genes nuevos), simbiótica (2 sintrofias por 8 turnos) o puntaje al final (ecológica si no tienes guerras y quedan ≥ 4 facciones).
-- **Campaña**: 120 turnos, sin reloj, pausa (botón ⏸) y guardado automático cada turno **por usuario** en este computador
-  (localStorage del navegador). En el menú ☰ también puedes exportar la partida a .json.
+- **Aprender**: mapa chico (16×11), 15 turnos, rivales que no atacan, pistas de la asesora. Para la primera partida.
+- **Rápida**: mapa mediano (23×16), 25 turnos, sin reloj.
+- **Campaña**: mapa grande (32×22), 120 turnos, pausa y guardado automático cada turno **por usuario** (localStorage); exportable a .json desde el menú ☰.
+- Victorias: dominación (40 % del río; 60 % en campaña), genética (los 8 poderes), simbiótica (2 sintrofias por 8/10 turnos) o puntaje al final (ecológica si no tienes guerras y quedan ≥ 4 facciones).
 - Idioma: español por defecto, botón **English** en la portada o en el menú.
 
 ## Facciones (comunidades reales de los metagenomas de Copahue)
@@ -48,7 +48,7 @@ externa, transferencia horizontal de genes, ICE, quorum sensing, fagos/CRISPR, s
 - `index.html` — pantalla, HUD, estilos
 - `data/copahue.js` — datos derivados de `copahue-v8/data/data.js` (muestras, metagenomas, DEM, ríos, fotos) + mapa de hexes
 - `js/factions.js` — facciones, genes, eventos · `js/rules.js` — reglas · `js/ai.js` — IA · `js/map.js` — render
-- `js/audio.js` — música y efectos · `js/game.js` — interfaz · `js/save.js` — guardado · `js/pedia.js`, `js/i18n.js`
+- `js/fx.js` — animaciones "lupa" (bacterias dividiéndose, peleando, biofilm, agua, vesículas) · `js/audio.js` — música y efectos · `js/game.js` — interfaz · `js/save.js` — guardado · `js/pedia.js`, `js/i18n.js`
 - `tools/build_map.py` — regenera `data/copahue.js` desde `data.js` de la v8 (solo lectura)
 
 ## Fuentes
