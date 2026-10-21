@@ -1,7 +1,7 @@
 // COLONIZATION — interfaz, flujo de turnos, modos de juego
 'use strict';
 (function(){
-const VERSION='v2.4 · 2026-10-21 11:53';
+const VERSION='v2.5 · 2026-10-21 13:39';
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let autoEndTimer=null;
@@ -54,14 +54,21 @@ function startFromState(s){useBoard(s.board||'m');st=s;mode=null;st.markers=st.m
 function refresh(){if(!st)return;const P=st.factions[st.human],F=FBY[st.human];
   $('#hudFaction').innerHTML=`<span class="dot" style="background:${F.color}"></span>${F.icon} ${esc(L(F.name))} · <small>${esc(user)}</small>`;
   $('#hudTurn').textContent=`${T('turn')} ${Math.min(st.turn,st.maxTurns)}/${st.maxTurns}`;$('#hudEra').textContent=T('eraNames')[st.era||0];
-  $('#hudRes').innerHTML=`<span title="${T('energy')}">⚡ ${P.res.energy.toFixed(0)}</span><span title="${T('carbon')}">🟢 ${P.res.carbon.toFixed(0)}</span><span title="${T('actions')}" class="acts-dots">🎯 ${'●'.repeat(P.actions)}${'○'.repeat(Math.max(0,(st.turn===1?6:3)-P.actions))}</span><span>🗺 ${Rules.territory(st,st.human)}/${map.playable.length}</span>`;
+  $('#hudRes').innerHTML=`<span title="${T('energy')}">⚡ ${P.res.energy.toFixed(0)}</span><span title="${T('carbon')}">🟢 ${P.res.carbon.toFixed(0)}</span><span>🗺 ${Rules.territory(st,st.human)}/${map.playable.length}</span>`;
   $('#cdgBtn').innerHTML=`${P.cdg==='high'?T('cdgHigh'):T('cdgLow')}${P.cdgPending?' ⏳':''}`;$('#cdgBtn').className='cdg '+P.cdg;
   $('#timer').style.display=st.mode==='quick'?'':'none';
   renderLog();if(map.sel>=0)renderHex(map.sel);
   const era=Rules?st.era:0;Audio_.setMusic({era:st.era||0,war:humanAtWar()});
+  renderBalls(P,F);
   $('#btnPause').style.display=st.mode==='campaign'?'':'none';$('#btnEnd').classList.toggle('pulse',P.actions<=0&&!st.over);
   if(P.actions<=0&&!st.over&&!autoEndTimer&&!mode){autoEndTimer=setTimeout(()=>{autoEndTimer=null;if(st&&!st.over&&st.factions[st.human].actions<=0&&!$('#modal').classList.contains('open'))endTurn();else refresh();},1400);toast(L({es:'⏳ Sin acciones: pasando el turno…',en:'⏳ No actions left: ending turn…'}),1300);}
   $('#hudFaction').innerHTML=`<b>${L({es:'TÚ',en:'YOU'})}:</b> <span class="dot" style="background:${F.color}"></span>${F.icon} ${esc(L(F.name))}`;}
+let lastBalls=-1;
+function renderBalls(P,F){const box=$('#actballs');const total=st.turn===1?6:Rules.ACTIONS_PER_TURN;const n=P.actions;box.style.setProperty('--fc',F.color);
+  if(lastBalls===n&&box.children.length===total+1)return;
+  if(lastBalls>n&&box.children.length===total+1){const balls=[...box.querySelectorAll('i')];for(let k=n;k<lastBalls&&k<balls.length;k++){balls[k].classList.add('pop');}setTimeout(()=>build(),380);}else build();
+  function build(){box.innerHTML=`<span class="lbl">${L({es:'Acciones',en:'Actions'})}</span>`+Array.from({length:total},(_,k)=>`<i class="${k<n?'':'off'}"></i>`).join('');}
+  lastBalls=n;}
 function humanAtWar(){return Object.keys(st.wars).some(k=>k.split('|').indexOf(st.human)>=0);}
 function renderLog(){const box=$('#log');const items=st.log.slice(-6).reverse();box.innerHTML=items.map(e=>`<div class="le">${logText(e)}</div>`).join('');}
 function fname(f){const F=FBY[f];return `<b style="color:${F.color}">${esc(L(F.name))}</b>`;}
